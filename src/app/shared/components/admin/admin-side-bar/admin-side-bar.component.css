@@ -1,0 +1,90 @@
+.admin-sidebar {
+  width: 220px;
+  background: #1565c0;
+  color: #fff;
+  min-height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  box-shadow: 2px 0 6px rgba(0,0,0,0.1); /* Giảm độ đậm của shadow */
+  z-index: 100;
+  transition: width 0.3s ease, padding-top 0.3s ease;
+  overflow-x: hidden;
+}
+
+.admin-sidebar.collapsed {
+  width: 60px;
+}
+
+.sidebar-header {
+  position: relative;
+  text-align: center;
+}
+
+.sidebar-logo {
+  cursor: pointer; /* Thêm con trỏ để chỉ ra logo có thể click */
+  margin: 10px auto; /* Căn giữa logo */
+  transition: transform 0.3s ease; /* Hiệu ứng xoay khi click */
+}
+
+.sidebar-logo:hover {
+  transform: rotate(90deg); /* Xoay logo khi hover để báo hiệu toggle */
+}
+
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-left: 10px;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+.admin-sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-sidebar nav ul li {
+  margin-bottom: 8px; /* Giảm margin-bottom từ 12px xuống 8px */
+  cursor: pointer;
+}
+
+.admin-sidebar nav ul li a {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Giảm gap từ 12px xuống 10px */
+  color: #fff;
+  text-decoration: none;
+  font-size: 15px; /* Giảm font-size từ 16px xuống 15px */
+  padding: 10px 20px; /* Giảm padding từ 12px 24px xuống 10px 20px */
+  border-radius: 6px; /* Giảm border-radius từ 8px xuống 6px */
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.admin-sidebar.collapsed nav ul li a {
+  padding: 10px;
+  font-size: 0;
+  justify-content: center;
+}
+
+.admin-sidebar.collapsed nav ul li a i {
+  font-size: 20px; /* Giảm font-size từ 22px xuống 20px */
+}
+
+.admin-sidebar nav ul li a:hover,
+.admin-sidebar nav ul li a:focus {
+  background: #e0f7fa; /* Màu nền nhạt khi hover/focus, khác với active */
+  color: #1565c0;
+}
+
+.admin-sidebar nav ul li a.active {
+  background: #fff; /* Màu nền trắng khi active */
+  color: #1565c0; /* Màu text xanh khi active */
+}
+
+.admin-sidebar nav ul li a i {
+  font-size: 16px; /* Giảm font-size từ 18px xuống 16px */
+  min-width: 20px; /* Giảm min-width từ 22px xuống 20px */
+}

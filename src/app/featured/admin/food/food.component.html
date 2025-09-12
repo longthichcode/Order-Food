@@ -1,0 +1,443 @@
+<app-admin-header></app-admin-header>
+<app-admin-side-bar [(open)]="sidebarOpen"></app-admin-side-bar>
+<div class="food-container" [class.sidebar-collapsed]="!sidebarOpen">
+    <!-- Loading spinner -->
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p>Đang tải danh sách món ăn...</p>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="error" class="error-message">
+        <p>{{ error }}</p>
+        <button mat-raised-button color="primary" (click)="getAllFoods()">
+            Thử lại
+        </button>
+    </div>
+
+    <!-- search information -->
+    <div class="row">
+        <div class="search-container col-6">
+            <h3>Tìm kiếm</h3>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Tên món</mat-label>
+                <input matInput type="text" placeholder="Nhập tên món" (input)="searchByName($event)">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Danh mục</mat-label>
+                <mat-select [(ngModel)]="selectedCategory" (selectionChange)="filterByCategory($event.value)">
+                    <mat-option value="0" matTooltip="Hiển thị tất cả các món ăn">Tất cả</mat-option>
+                    <mat-option *ngFor="let category of listCategory" [value]="category.categoryId"
+                        [matTooltip]="category.description">
+                        {{ category.categoryName }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <!--Quản lí danh mục -->
+        <div class="category-manager col-6">
+            <h3>Danh sách danh mục</h3>
+            <div class="category-list-btns">
+                <button *ngFor="let category of listCategory" class="btn btn-outline-primary me-2 mb-2"
+                    [class.active]="selectedCategory === category.categoryId"
+                    (click)="openModalCat(category.categoryId)">
+                    {{ category.categoryName }}
+                </button>
+                <button class="btn btn-dark text-light me-2 mb-2" style="border-radius:5%" (click)="openModalCatAdd()">
+                    Thêm danh mục
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Food table -->
+    <div *ngIf="!loading && !error" class="table-container">
+        <div class="table-header">
+            <h3>Tổng cộng: {{ listFoods.length }} món ăn</h3>
+            <div class="page-size">
+                <label for="itemsPerPage">Số bản ghi/trang:</label>
+                <input id="itemsPerPage" type="number" min="1" [(ngModel)]="itemsPerPage" (change)="page = 1">
+            </div>
+            <div>
+                <button class="btn text-light bg-dark me-2" (click)="getAllFoods()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+                <label for="importFile" class="btn text-light bg-success me-2">
+                    <i class="bi bi-file-earmark-plus"></i> Import
+                    <input type="file" id="importFile" style="display: none;" (change)="onFileImport($event)" accept=".xlsx">
+                </label>
+                <button class="btn btn-outline-success me-2" (click)="exportToExcel()">
+                    <i class="bi bi-box-arrow-right"></i> Export
+                </button>
+                <button class="btn text-light bg-dark" (click)="openAddModal()">
+                    <i class="bi bi-plus"></i> Thêm món mới
+                </button>
+            </div>
+        </div>
+
+        <table mat-table
+            [dataSource]="listFoods | paginate: { itemsPerPage: itemsPerPage, currentPage: page, totalItems: totalItems }"
+            class="food-table">
+            <!-- Food ID Column -->
+            <ng-container matColumnDef="foodId">
+                <th mat-header-cell *matHeaderCellDef>ID</th>
+                <td mat-cell *matCellDef="let food">{{ food.foodId }}</td>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Tên món</th>
+                <td mat-cell *matCellDef="let food">
+                    <div class="food-name">
+                        <img [src]="'/assets/'+food.imageUrl" [alt]="food.name" class="food-image">
+                        <div>
+                            <p>{{ food.name }}</p>
+                            <p>{{ food.description }}</p>
+                        </div>
+                    </div>
+                </td>
+            </ng-container>
+            <!-- Price Column -->
+            <ng-container matColumnDef="price">
+                <th mat-header-cell *matHeaderCellDef>Giá</th>
+                <td mat-cell *matCellDef="let food">
+                    <span [class.promotion]="food.isPromotion">
+                        {{ formatPrice(food.price) }}
+                    </span>
+                    <span *ngIf="food.isPromotion" class="promotion-badge">Khuyến mãi</span>
+                </td>
+            </ng-container>
+
+            <!-- Category Column -->
+            <ng-container matColumnDef="category">
+                <th mat-header-cell *matHeaderCellDef>Danh mục</th>
+                <td mat-cell *matCellDef="let food">
+                    <span class="category-badge">{{ getCategoryName(food.category) }}</span>
+                </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+                <td mat-cell *matCellDef="let food">
+                    <span class="status-badge" [style.background-color]="getStatusColor(food.status)">
+                        {{ food.status === 'AVAILABLE' ? 'Có sẵn' : 'Hết hàng' }}
+                    </span>
+                </td>
+            </ng-container>
+
+            <!-- Promotion Column -->
+            <ng-container matColumnDef="isPromotion">
+                <th mat-header-cell *matHeaderCellDef>Khuyến mãi</th>
+                <td mat-cell *matCellDef="let food">
+                    <mat-icon [color]="food.isPromotion ? 'accent' : ''">
+                        {{ food.isPromotion ? 'local_offer' : 'remove' }}
+                    </mat-icon>
+                </td>
+            </ng-container>
+
+            <!-- Order Count Column -->
+            <ng-container matColumnDef="orderCount">
+                <th mat-header-cell *matHeaderCellDef>Đã bán</th>
+                <td mat-cell *matCellDef="let food">{{ food.orderCount }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Thao tác</th>
+                <td mat-cell *matCellDef="let food">
+                    <button class="action-btn edit-btn me-2" title="Sửa" (click)="openEditModal(food)">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="action-btn delete-btn" title="Xóa" (click)="deleteFood(food.foodId)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+        <!-- Pagination & Page size -->
+        <div class="pagination-bar">
+            <pagination-controls (pageChange)="page = $event" previousLabel="Trước" nextLabel="Sau" class="pagination">
+            </pagination-controls>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="listFoods.length === 0" class="empty-state">
+            <mat-icon>restaurant</mat-icon>
+            <p>Chưa có món ăn nào</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa -->
+<div class="modal-backdrop-custom" *ngIf="isEditModalOpen">
+    <div class="modal-dialog-custom">
+        <div class="modal-content-custom">
+            <!-- Header -->
+            <div class="modal-header-custom">
+                <h5 class="mb-0">Chỉnh Sửa Món Ăn</h5>
+                <button class="btn-close-custom" (click)="closeEditModal()">×</button>
+            </div>
+
+            <!-- Form -->
+            <form *ngIf="foodEdit" #f="ngForm">
+                <!-- Tên món + Giá -->
+                <div class="form-row d-flex gap-3">
+                    <div class="flex-fill">
+                        <label>Tên món *</label>
+                        <input class="form-control" [(ngModel)]="foodEdit.name" name="name" required />
+                    </div>
+                    <div style="width: 120px;">
+                        <label>Giá (VND) *</label>
+                        <input type="number" class="form-control" [(ngModel)]="foodEdit.price" name="price" required />
+                    </div>
+                    <div class="col-box flex-fill">
+                        <label>Danh mục *</label>
+                        <select class="form-control" [(ngModel)]="categorySelectEdit" name="categoryId" required>
+                            <option *ngFor="let cat of listCategory" [value]="cat.categoryId">
+                                {{ cat.categoryName }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Mô tả -->
+                <div class="form-row">
+                    <label>Mô tả *</label>
+                    <textarea class="form-control" rows="3" [(ngModel)]="foodEdit.description" name="description"
+                        required></textarea>
+                </div>
+
+                <!-- Preview + Ảnh cũ + Danh mục -->
+                <div class="form-row d-flex gap-3 align-items-start">
+                    <!-- Cột 1: Preview ảnh mới -->
+                    <div class="col-box">
+                        <p class="mb-1">Ảnh mới:</p>
+                        <img *ngIf="previewUrl; else noPreview" [src]="previewUrl" alt="Preview" class="img-thumbnail"
+                            width="300px" />
+                        <ng-template #noPreview>
+                            <img src="assets/null.jpg" alt="No preview" class="img-thumbnail" />
+                        </ng-template>
+                    </div>
+
+                    <!-- Cột 2: Ảnh cũ + chọn ảnh -->
+                    <div class="col-box">
+                        <p class="mb-1">Ảnh cũ:</p>
+                        <img *ngIf="oldImg; else noOldImg" [src]="'assets/'+oldImg" alt="Ảnh cũ" class="img-thumbnail"
+                            width="180px" />
+                        <ng-template #noOldImg>
+                            <img src="assets/null.jpg" alt="No old image" class="img-thumbnail" />
+                        </ng-template>
+
+                        <div class="mt-2">
+                            <label for="fileInput" class="form-label">Chọn ảnh mới</label>
+                            <input type="file" class="form-control" id="fileInput" (change)="onFileSelected($event)"
+                                accept="image/*" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trạng thái -->
+                <div class="form-row form-check form-switch mt-3">
+                    <input class="form-check-input" type="checkbox" id="statusSwitch"
+                        [checked]="foodEdit.status === 'AVAILABLE'"
+                        (change)="foodEdit.status = $any($event.target).checked ? 'AVAILABLE' : 'OUT_OF_STOCK'" />
+                    <label class="form-check-label" for="statusSwitch">
+                        {{ foodEdit.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng' }}
+                    </label>
+                </div>
+
+                <!-- Nổi bật -->
+                <div class="form-row form-check mt-2">
+                    <input type="checkbox" class="form-check-input" [(ngModel)]="foodEdit.isPromotion"
+                        name="isPromotion" id="promotionCheck" />
+                    <label class="form-check-label" for="promotionCheck">Món nổi bật</label>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions mt-4">
+                    <button type="button" class="btn btn-outline-secondary" (click)="closeEditModal()">Hủy</button>
+                    <button type="button" class="btn btn-primary" (click)="updateFood()" [disabled]="f.invalid">Cập
+                        Nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm -->
+<div class="modal-backdrop-custom" *ngIf="isAddModalOpen">
+    <div class="modal-dialog-custom">
+        <div class="modal-content-custom">
+            <!-- Header -->
+            <div class="modal-header-custom">
+                <h5 class="mb-0">Thêm món mới</h5>
+                <button class="btn-close-custom" (click)="closeAddModal()">×</button>
+            </div>
+
+            <!-- Form -->
+            <form *ngIf="foodAdd.foodId == 0" #f="ngForm">
+                <!-- Tên món + Giá -->
+                <div class="form-row d-flex gap-3">
+                    <div class="flex-fill">
+                        <label>Tên món *</label>
+                        <input class="form-control" [(ngModel)]="foodAdd.name" name="name" required />
+                    </div>
+                    <div style="width: 120px;">
+                        <label>Giá (VND) *</label>
+                        <input type="number" class="form-control" [(ngModel)]="foodAdd.price" name="price" required />
+                    </div>
+                    <div class="col-box flex-fill">
+                        <label>Danh mục *</label>
+                        <select class="form-control" [(ngModel)]="categorySelectAdd" name="categoryId" required>
+                            <option *ngFor="let cat of listCategory" [value]="cat.categoryId">
+                                {{ cat.categoryName }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Mô tả -->
+                <div class="form-row">
+                    <label>Mô tả *</label>
+                    <textarea class="form-control" rows="3" [(ngModel)]="foodAdd.description" name="description"
+                        required></textarea>
+                </div>
+
+                <!-- Preview + Ảnh cũ + Danh mục -->
+                <div class="form-row d-flex gap-3 align-items-start">
+                    <!-- Cột 1: Preview ảnh mới -->
+                    <div class="col-box">
+                        <p class="mb-1">Ảnh mới:</p>
+                        <img *ngIf="previewUrl; else noPreview" [src]="previewUrl" alt="Preview" class="img-thumbnail"
+                            width="300px" />
+                        <ng-template #noPreview>
+                            <img src="assets/null.jpg" alt="No preview" class="img-thumbnail" />
+                        </ng-template>
+                    </div>
+
+                    <!-- chọn ảnh -->
+                    <div class="col-box">
+                        <div class="mt-2">
+                            <label for="fileInput" class="form-label">Chọn ảnh mới</label>
+                            <input type="file" class="form-control" id="fileInput" (change)="onFileSelectedAdd($event)"
+                                accept="image/*" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trạng thái -->
+                <div class="form-row form-check form-switch mt-3">
+                    <input class="form-check-input" type="checkbox" id="statusSwitch"
+                        [checked]="foodAdd.status === 'AVAILABLE'"
+                        (change)="foodAdd.status = $any($event.target).checked ? 'AVAILABLE' : 'OUT_OF_STOCK'" />
+                    <label class="form-check-label" for="statusSwitch">
+                        {{ foodAdd.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng' }}
+                    </label>
+                </div>
+
+                <!-- Nổi bật -->
+                <div class="form-row form-check mt-2">
+                    <input type="checkbox" class="form-check-input" [(ngModel)]="foodAdd.isPromotion" name="isPromotion"
+                        id="promotionCheck" />
+                    <label class="form-check-label" for="promotionCheck">Món nổi bật</label>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions mt-4">
+                    <button type="button" class="btn btn-outline-secondary" (click)="closeAddModal()">Hủy</button>
+                    <button type="button" class="btn btn-primary" (click)="addFood()"
+                        [disabled]="f.invalid">Thêm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thông báo lỗi nhập file -->
+<div class="modal-backdrop-custom" *ngIf="isErrorModalOpen">
+    <div class="modal-dialog-custom">
+        <div class="modal-content-custom">
+            <div class="modal-header-custom">
+                <h5 class="mb-0">Thông báo nhập file</h5>
+                <button class="btn-close-custom" (click)="closeErrorModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p *ngIf="importResult?.errorFileBlob">
+                    Tải file lỗi để xem chi tiết các dòng không hợp lệ.
+                </p>
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn btn-outline-secondary" (click)="closeErrorModal()">Đóng</button>
+                <button type="button" class="btn btn-primary" *ngIf="importResult?.errorFileBlob" (click)="downloadErrorFile()">
+                    Tải file lỗi
+                </button>
+                <button type="button" class="btn btn-success" *ngIf="importResult?.errorFileBlob" (click)="downloadModelFile()">Tải file mẫu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-backdrop-custom-category" *ngIf="isOpenModalCat">
+    <div class="modal-dialog-custom-category">
+        <h4>Thông tin danh mục</h4>
+        <form #categoryForm="ngForm" (ngSubmit)="updateCategory()">
+            <div class="mb-3">
+                <label for="categoryName" class="form-label"><b>Tên danh mục:</b></label>
+                <input type="text" id="categoryName" name="categoryName" class="form-control"
+                    [(ngModel)]="categoryChoose.categoryName" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label"><b>Mô tả:</b></label>
+                <textarea id="description" name="description" class="form-control"
+                    [(ngModel)]="categoryChoose.description" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><b>Trạng thái:</b></label>
+                <div class="text-end">
+                    <mat-slide-toggle [(ngModel)]="categoryChoose.isActive" class="custom-toggle" name="isActive" color="primary">
+                    {{ categoryChoose.isActive ? 'Hoạt động' : 'Ẩn' }} </mat-slide-toggle>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary me-2" (click)="isOpenModalCat = false">Đóng</button>
+                <button type="submit" class="btn btn-dark me-2" [disabled]="!categoryForm.valid">Cập nhật</button>
+                <button type="button" class="btn btn-danger" (click)="deleteCategory(categoryChoose.categoryId)">Xoá</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-backdrop-custom-category" *ngIf="isOpenModalAddCat">
+    <div class="modal-dialog-custom-category">
+        <h4>Thông tin danh mục</h4>
+        <form #categoryAddForm="ngForm" (ngSubmit)="addCategory()">
+            <div class="mb-3">
+                <label for="categoryName" class="form-label"><b>Tên danh mục:</b></label>
+                <input type="text" id="categoryName" name="categoryName" class="form-control"
+                    [(ngModel)]="categoryAdd.categoryName" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label"><b>Mô tả:</b></label>
+                <textarea id="description" name="description" class="form-control"
+                    [(ngModel)]="categoryAdd.description" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><b>Trạng thái:</b></label>
+                <div class="text-end">
+                    <mat-slide-toggle [(ngModel)]="categoryAdd.isActive" class="custom-toggle" name="isActive" color="primary">
+                    {{ categoryAdd.isActive ? 'Hoạt động' : 'Ẩn' }} </mat-slide-toggle>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary me-2" (click)="isOpenModalAddCat = false">Đóng</button>
+                <button type="submit" class="btn btn-dark me-2" [disabled]="!categoryAddForm.valid">Thêm</button>
+            </div>
+        </form>
+    </div>
+</div>

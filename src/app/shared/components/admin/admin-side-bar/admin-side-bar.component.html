@@ -1,0 +1,15 @@
+<aside class="admin-sidebar" [class.collapsed]="!open">
+    <div class="sidebar-header">
+        <img src="assets/logo.jpg" (click)="toggleSidebar()" class="sidebar-logo" width="50" height="50" alt="Logo">
+        <span *ngIf="open" class="sidebar-title">Order Food</span>
+    </div>
+
+    <nav>
+        <ul>
+            <li><a routerLink="/admin/foods" routerLinkActive="active"><i class="bi bi-list"></i> <span *ngIf="open">Món ăn</span></a></li>
+            <li><a routerLink="/admin/categories" routerLinkActive="active"><i class="bi bi-tags"></i> <span *ngIf="open">Danh mục</span></a></li>
+            <li><a routerLink="/admin/orders" routerLinkActive="active"><i class="bi bi-receipt"></i> <span *ngIf="open">Đơn hàng</span></a></li>
+            <li><a routerLink="/admin/users" routerLinkActive="active"><i class="bi bi-people"></i> <span *ngIf="open">Người dùng</span></a></li>
+        </ul>
+    </nav>
+</aside>
