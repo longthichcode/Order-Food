@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Food } from '../../shared/models/food';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -20,6 +20,14 @@ export class FoodServiceService {
       );
   }
 
+  //Lấy món nổi bật
+  getPopularFood(): Observable<Food[]> {
+    return this.http.get<Food[]>(`${this.baseUrl}/popular`)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
   //tìm món theo tên
   searchByName(name: string): Observable<Food[]> {
     return this.http.get<Food[]>(`${this.baseUrl}/by-name`, {
@@ -33,6 +41,18 @@ export class FoodServiceService {
   searchByCategory(categoryId: number): Observable<Food[]> {
     return this.http.get<Food[]>(`${this.baseUrl}/by-category`, {
       params: { categoryId }
+    }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  //tìm món theo mức giá 
+  searchByCost(minPrice: number, maxPrice: number): Observable<Food[]> {
+    return this.http.get<Food[]>(`${this.baseUrl}/by-price`, {
+      params: {
+        minPrice: minPrice.toString(),
+        maxPrice: maxPrice.toString()
+      }
     }).pipe(
       catchError(this.handleError)
     );

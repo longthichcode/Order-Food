@@ -1,0 +1,135 @@
+<app-customer-header></app-customer-header>
+<div class="cart-container container my-5">
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-danger" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+        <p class="mt-2">Đang tải giỏ hàng...</p>
+    </div>
+
+    <!-- Giỏ hàng trống -->
+    <div *ngIf="!loading && (!cartList || cartList.cartItems.length === 0)" class="text-center py-5">
+        <h5 class="text-muted">Giỏ hàng của bạn đang trống</h5>
+    </div>
+
+    <!-- Nội dung giỏ hàng -->
+    <div *ngIf="!loading && cartList && cartList.cartItems.length > 0">
+        <h4 class="mb-4">Giỏ Hàng ({{ cartList.cartItems.length }} món)</h4>
+
+        <div class="row g-4">
+            <!-- Món đã chọn -->
+            <div class="col-lg-8">
+                <div class="card p-3 shadow-sm mb-3">
+                    <h5 class="fw-bold mb-3">Món Đã Chọn</h5>
+
+                    <div *ngFor="let item of cartList.cartItems" class="cart-item d-flex align-items-center mb-3">
+                        <img [src]="'assets/'+item.foodImage" alt="{{ item.foodName }}" class="item-image rounded" />
+
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1 fw-bold">{{ item.foodName }}</h6>
+                            <p class="mb-1 small text-muted" *ngIf="editingNoteId !== item.cartItemId">
+                                {{ item.note || 'Không có ghi chú' }}
+                                <i class="bi bi-pencil-square ms-1 text-primary" style="cursor:pointer"
+                                    (click)="startEditNote(item)"></i>
+                            </p>
+
+                            <div *ngIf="editingNoteId === item.cartItemId" class="d-flex align-items-center">
+                                <input [(ngModel)]="selectedNote" type="text" class="form-control form-control-sm me-2"
+                                    placeholder="Nhập ghi chú..." />
+                                <button class="btn btn-sm btn-success me-1" (click)="saveNote(item)">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" (click)="cancelEdit()">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+
+                            <span class="price text-danger fw-bold">
+                                {{ item.price | currency:'VND':'symbol':'1.0-0' }}
+                            </span>
+                        </div>
+
+                        <div class="d-flex align-items-center ms-3">
+                            <div class="input-group input-group-sm" style="width: max-content;">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    (click)="decreaseQuantity(item)">-</button>
+                                <input type="text" class="form-control text-center" [(ngModel)]="item.quantity"
+                                    readonly>
+                                <button class="btn btn-outline-secondary" type="button"
+                                    (click)="increaseQuantity(item)">+</button>
+                            </div>
+                            <button (click)="removeItem(item.foodId)" class="btn btn-outline-danger btn-sm ms-2">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ghi chú -->
+                <div class="card p-3 shadow-sm">
+                    <h6 class="fw-bold mb-2">Ghi chú cho món ăn</h6>
+                    <input type="text" class="form-control" placeholder="VD: Ít cay, không hành..." />
+                </div>
+            </div>
+
+            <!-- Thông tin khách hàng -->
+            <div class="col-lg-4">
+                <div class="card p-3 shadow-sm">
+                    <h5 class="fw-bold mb-3">Thông Tin Khách Hàng</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label">Họ và tên *</label>
+                        <input type="text" class="form-control" placeholder="Nhập họ và tên" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Số điện thoại *</label>
+                        <input type="text" class="form-control" placeholder="Nhập số điện thoại" />
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Địa chỉ giao hàng *</label>
+                        <textarea class="form-control" placeholder="Nhập địa chỉ chi tiết"></textarea>
+                    </div>
+                </div>
+
+                <!-- Tóm tắt đơn hàng -->
+                <div class="card p-3 shadow-sm mt-4">
+                    <h5 class="fw-bold mb-3">Tóm Tắt Đơn Hàng</h5>
+
+                    <div *ngFor="let item of cartList.cartItems" class="d-flex justify-content-between mb-2 small">
+                        <span>{{ item.foodName }} x{{ item.quantity }}</span>
+                        <span>{{ (item.price * item.quantity) | currency:'VND':'symbol':'1.0-0' }}</span>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tạm tính:</span>
+                        <span>{{ getTotal() | currency:'VND':'symbol':'1.0-0' }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Phí giao hàng:</span>
+                        <span class="text-success">Miễn phí</span>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between fw-bold text-danger mb-3">
+                        <span>Tổng cộng:</span>
+                        <span>{{ getTotal() | currency:'VND':'symbol':'1.0-0' }}</span>
+                    </div>
+
+                    <button class="btn btn-danger w-100">Đặt Hàng Ngay</button>
+                    <p class="text-muted small mt-2">
+                        Bằng cách đặt hàng, bạn đồng ý với các điều khoản sử dụng của chúng tôi
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,36 @@
+<app-admin-header></app-admin-header>
+<app-admin-side-bar [(open)]="sidebarOpen"></app-admin-side-bar>
+
+<div class="user-container" [class.sidebar-closed]="!sidebarOpen">
+  <h2>Danh sách người dùng</h2>
+
+  <div *ngIf="loading" class="loading">Đang tải...</div>
+  <div *ngIf="errMessage" class="error">{{ errMessage }}</div>
+
+  <table *ngIf="!loading && allUser.length > 0" class="user-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tài khoản</th>
+        <th>Họ tên</th>
+        <th>Email</th>
+        <th>Số điện thoại</th>
+        <th>Quyền</th>
+        <th>Ngày tạo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of allUser">
+        <td>{{ user.userId }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.fullName }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.phone }}</td>
+        <td>{{ user.role }}</td>
+        <td>{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!loading && allUser.length === 0" class="empty">Không có người dùng nào.</div>
+</div>

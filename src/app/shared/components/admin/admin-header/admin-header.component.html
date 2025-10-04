@@ -1,7 +1,24 @@
 <header class="admin-header">
-  <div class="admin-header-content justify-content-end">
-    <button class="btn btn-outline-danger " (click)="logout()">
-      <i class="bi bi-box-arrow-right"></i> Đăng xuất
-    </button>
+  <div class="admin-header-content">
+    <div class="admin-logo"> <i class="bi bi-shop"></i> Quản trị </div>
+
+    <!-- custom dropdown (ko cần bootstrap js) -->
+    <div class="dropdown" [class.show]="open">
+      <button class="btn-account" type="button" (click)="toggleDropdown($event)" [attr.aria-expanded]="open">
+        <i class="bi bi-person-circle"></i> Tài khoản
+      </button>
+
+
+      <ul class="dropdown-menu" [class.show]="open" [attr.aria-hidden]="!open">
+        <li><a class="dropdown-item" (click)="viewProfile()"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
+        <li><a class="dropdown-item" (click)="goToCustomer()"><i class="bi bi-house-door"></i> Trang khách hàng</a></li>
+        <li><a class="dropdown-item" (click)="goToStaff()"><i class="bi bi-briefcase"></i> Trang nhân viên</a></li>
+        <li>
+          <hr class="dropdown-divider">
+        </li>
+        <li><a class="dropdown-item text-danger" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
+        </li>
+      </ul>
+    </div>
   </div>
 </header>

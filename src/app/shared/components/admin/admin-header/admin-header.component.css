@@ -1,29 +1,38 @@
-
+/* Header chính */
 .admin-header {
   background: linear-gradient(90deg, #1565c0 60%, #567ca2 100%);
   color: #fff;
   padding: 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
+
 .admin-header-content {
   max-width: 1500px;
   margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 32px;
   justify-content: space-between;
   padding: 0 24px;
   height: 64px;
 }
+
+/* Logo */
 .admin-logo {
-  height: 40px;
-  margin-right: 18px;
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: 600;
+  gap: 8px;
 }
+
+/* Tabs điều hướng */
 .admin-nav-tabs {
   display: flex;
   gap: 24px;
   flex: 1;
+  justify-content: center;
 }
+
 .admin-nav-tabs a {
   color: #fff;
   text-decoration: none;
@@ -34,13 +43,16 @@
   transition: background 0.2s, color 0.2s;
   position: relative;
 }
+
 .admin-nav-tabs a.active-tab,
 .admin-nav-tabs a:hover {
   background: #fff;
   color: #1565c0;
-  box-shadow: 0 2px 8px rgba(21,101,192,0.08);
+  box-shadow: 0 2px 8px rgba(21, 101, 192, 0.08);
 }
-.btn-logout {
+
+/* Nút dropdown */
+.btn-account {
   background: #fff;
   color: #1565c0;
   border: none;
@@ -48,13 +60,65 @@
   border-radius: 8px;
   font-weight: 500;
   font-size: 15px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: background 0.2s, color 0.2s;
 }
-.btn-logout:hover {
+
+.btn-account:hover {
   background: #e3f2fd;
   color: #1976d2;
+}
+
+/* Menu dropdown */
+
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 24px;
+  /* căn đúng vị trí */
+  top: 64px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  padding: 8px 0;
+  background: #fff;
+  min-width: 220px;
+  z-index: 2000;
+}
+
+.dropdown.show .dropdown-menu,
+.dropdown-menu.show {
+  display: block;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  border-radius: 12px;
+  padding: 8px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border: none;
+}
+
+.dropdown-item {
+  font-size: 15px;
+  font-weight: 500;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: #f5f9ff;
+  color: #1565c0;
+}
+
+.dropdown-divider {
+  margin: 6px 0;
 }

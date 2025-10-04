@@ -1,0 +1,65 @@
+<div class="page-wrapper">
+  <div class="auth-wrapper">
+    <!-- Ảnh -->
+    <div class="auth-image">
+      <img src="assets/logo_login.jpg" alt="Logo">
+    </div>
+
+    <!-- Form -->
+    <div class="login-container">
+      <h2>{{ activeTab === 'login' ? 'Đăng nhập' : 'Đăng ký' }}</h2>
+
+      <div class="tab-buttons">
+        <button [class.active]="activeTab === 'login'" (click)="activeTab = 'login'" class="me-2">Đăng nhập</button>
+        <button [class.active]="activeTab === 'register'" (click)="activeTab = 'register'">Đăng ký</button>
+      </div>
+
+      <!-- Login Form -->
+      <form *ngIf="activeTab === 'login'" (ngSubmit)="onLogin()">
+        <div class="form-group">
+          <label for="username">Tài khoản</label>
+          <input type="text" id="username" [(ngModel)]="username" name="username" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mật khẩu</label>
+          <input type="password" id="password" [(ngModel)]="password" name="password" required>
+        </div>
+
+        <button type="submit" class="btn-login">Đăng nhập</button>
+      </form>
+
+      <!-- Register Form -->
+      <form *ngIf="activeTab === 'register'" (ngSubmit)="onRegister()">
+        <div class="form-group">
+          <label for="fullName">Họ và tên</label>
+          <input type="text" id="fullName" [(ngModel)]="fullName" name="fullName" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" [(ngModel)]="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Số điện thoại</label>
+          <input type="text" id="phone" [(ngModel)]="phone" name="phone">
+        </div>
+
+        <div class="form-group">
+          <label for="regUsername">Tài khoản</label>
+          <input type="text" id="regUsername" [(ngModel)]="regUsername" name="regUsername" required>
+        </div>
+
+        <div class="form-group">
+          <label for="regPassword">Mật khẩu</label>
+          <input type="password" id="regPassword" [(ngModel)]="regPassword" name="regPassword" required>
+        </div>
+
+        <button type="submit" class="btn-register">Đăng ký</button>
+      </form>
+
+      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    </div>
+  </div>
+</div>

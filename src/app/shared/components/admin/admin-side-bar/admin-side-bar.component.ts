@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-side-bar',
@@ -12,8 +13,18 @@ export class AdminSideBarComponent {
   @Input() open: boolean = true;
   @Output() openChange = new EventEmitter<boolean>();
 
+  constructor( private router: Router) { }
+
   toggleSidebar() {
     this.open = !this.open;
     this.openChange.emit(this.open);
+  }
+
+  food(){
+    this.router.navigate(['admin/food'])
+  }
+
+  user(){
+    this.router.navigate(['admin/user'])
   }
 }

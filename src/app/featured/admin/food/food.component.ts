@@ -101,11 +101,11 @@ export class FoodComponent implements OnInit {
 
   // Modal lỗi nhập file
   isErrorModalOpen = false;
-  importResult: { 
-    success: boolean, 
-    insertedCount: number, 
-    skippedCount: number, 
-    errorMessage?: string, 
+  importResult: {
+    success: boolean,
+    insertedCount: number,
+    skippedCount: number,
+    errorMessage?: string,
     errorFileBlob?: Blob | null
   } | null = null;
 
@@ -179,12 +179,20 @@ export class FoodComponent implements OnInit {
 
   /** Lọc món theo danh mục */
   filterByCategory(categoryId: number): void {
-    this.listFoods = categoryId === 0
-      ? this.originalFoods
-      : this.originalFoods.filter(f => f.category?.categoryId === categoryId);
+    if (categoryId == 0) {
+      // Tất cả → lấy lại toàn bộ từ originalFoods
+      this.listFoods = this.originalFoods ;
+    } else {
+      // Lọc theo categoryId
+      this.listFoods = this.originalFoods.filter(
+        f => f.category?.categoryId === categoryId
+      );
+    }
 
     this.totalItems = this.listFoods.length;
   }
+
+
 
   /** Xóa món ăn */
   deleteFood(foodId: number): void {
@@ -394,7 +402,7 @@ export class FoodComponent implements OnInit {
             this.loading = false;
             const contentType = response.headers.get('content-type');
 
-            if (contentType === 'application/json' && response.body ) {
+            if (contentType === 'application/json' && response.body) {
               // Phản hồi JSON
               response.body.text().then((text: string) => {
                 const result = JSON.parse(text);
@@ -412,7 +420,7 @@ export class FoodComponent implements OnInit {
                   this.getAllFoods();
                 }
               });
-            } else if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && response.body ) {
+            } else if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && response.body) {
               // Phản hồi file lỗi
               response.body.text().then((text: string) => {
                 try {
@@ -476,7 +484,7 @@ export class FoodComponent implements OnInit {
     }
   }
 
- /** Tải file mẫu */
+  /** Tải file mẫu */
   downloadModelFile(): void {
     const sampleData = [
       {

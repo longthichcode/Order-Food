@@ -1,0 +1,63 @@
+<header class="header">
+  <div class="container">
+    <div class="header-content">
+      <!-- Logo -->
+      <div class="logo">
+        <span class="logo-circle">R</span>
+        <span class="logo-text">Nhà Hàng Việt Nam</span>
+      </div>
+
+      <!-- Hamburger menu -->
+      <div class="hamburger" (click)="toggleMenu()" [ngClass]="{ open: isMenuOpen }" [attr.aria-expanded]="isMenuOpen"
+        aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="nav" [ngClass]="{ active: isMenuOpen }">
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a class="nav-link" (click)="home()">Trang Chủ</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" (click)="menu()">Thực Đơn</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" (click)="cart()">Giỏ Hàng<span *ngIf="cartCount$ | async as cartCount"
+                class="cart-badge">
+                {{ cartCount }}
+              </span></a>
+
+          </li>
+
+          <!-- Dropdown -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" (click)="toggleDropdown()">
+              <i class="bi bi-person-circle"></i> Tài khoản
+            </a>
+            <ul class="dropdown-menu" [class.show]="open">
+              <li>
+                <a class="dropdown-item" (click)="viewProfile()"><i class="bi bi-person"></i> Thông tin tài khoản</a>
+              </li>
+              <li>
+                <a class="dropdown-item" (click)="goToAdmin()"><i class="bi bi-house-door"></i> Trang quản trị</a>
+              </li>
+              <li>
+                <a class="dropdown-item" (click)="goToStaff()"><i class="bi bi-briefcase"></i> Trang nhân viên</a>
+              </li>
+              <li>
+                <hr class="dropdown-divider" />
+              </li>
+              <li>
+                <a class="dropdown-item text-danger" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Đăng
+                  xuất</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>

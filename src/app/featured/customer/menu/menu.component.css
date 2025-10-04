@@ -1,0 +1,73 @@
+/* Card chung */
+.food-card {
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #fff;
+}
+
+.food-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0px 12px 24px rgba(0,0,0,0.15);
+}
+
+/* Ảnh món ăn */
+.img-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.food-img {
+  height: 220px;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+  width: 100%;
+}
+
+.img-wrapper:hover .food-img {
+  transform: scale(1.1);
+}
+
+/* Badge nổi bật */
+.new-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  border-radius: 12px;
+}
+
+/* Giá */
+.price-tag {
+  font-size: 1.1rem;
+  color: #e63946 !important;
+}
+
+/* Button thêm giỏ */
+.btn-animated {
+  transition: all 0.3s ease;
+  font-weight: 500;
+  border-radius: 25px;
+  padding: 8px 18px;
+}
+
+.btn-animated:hover {
+  background: linear-gradient(45deg, #ff6b6b, #f06595);
+  color: #fff !important;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(255, 107, 107, 0.4);
+}
+
+/* Responsive padding */
+@media (max-width: 768px) {
+  .food-img {
+    height: 180px;
+  }
+  .card-title {
+    font-size: 1rem;
+  }
+  .price-tag {
+    font-size: 1rem;
+  }
+}
