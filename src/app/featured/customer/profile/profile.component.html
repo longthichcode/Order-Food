@@ -1,0 +1,328 @@
+<app-customer-header></app-customer-header>
+
+<div class="d-flex flex-wrap gap-5 justify-content-center mt-3">
+    <!-- Profile Card -->
+    <div class="card p-3 profile-card bg-white">
+        <div class="d-flex align-items-center mb-3">
+            <img *ngIf="myUser.gender==='MALE'" src="assets/user_man.jpg" alt="User">
+            <img *ngIf="myUser.gender==='FEMALE'" src="assets/user_female.png" alt="User">
+            <img *ngIf="myUser.gender != 'MALE' &&  myUser.gender !='FEMALE'" src="assets/user_null.png" alt="User">
+
+            <div class="ms-3">
+                <div class="profile-name">{{myUser.username}}</div>
+                <div class="profile-email">{{myUser.email}}</div>
+            </div>
+        </div>
+
+        <!-- My Profile with submenu -->
+        <div class="profile-item ps-2 pe-2" (click)="toggleMenu('profile')">
+            <div><i class="bi bi-person me-2"></i>Thông tin tài khoản</div>
+            <i class="bi" [ngClass]="showMenu === 'profile' ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+        </div>
+        <div *ngIf="showMenu === 'profile'" class="submenu">
+            <div class="submenu-item me-2" (click)="activeForm='profile'">Thông tin cá nhân</div>
+            <div class="submenu-item me-2" (click)="activeForm='password'">Mật khẩu</div>
+        </div>
+
+        <!-- My Order with submenu -->
+        <div class="profile-item ps-2 pe-2" (click)="toggleMenu('order')">
+            <div><i class="bi bi-gear me-2"></i>Đơn hàng</div>
+            <i class="bi" [ngClass]="showMenu === 'order' ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+        </div>
+        <div *ngIf="showMenu === 'order'" class="submenu">
+            <div class="submenu-item" (click)="activeForm='orders'">Đơn hàng của tôi</div>
+            <div class="submenu-item" (click)="activeForm='chart'">Thống kê</div>
+        </div>
+
+        <div class="profile-item ps-2 pe-2">
+            <div><i class="bi bi-box-arrow-right"></i> Log Out</div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Form -->
+    <div *ngIf="activeForm === 'profile'" class="card p-4 form-card bg-white">
+        <div class="mb-3 text-center">
+            <div class="d-flex justify-content-center">
+                <img *ngIf="myUser.gender==='MALE'" src="assets/user_man.jpg" alt="User" class="profile-image">
+                <img *ngIf="myUser.gender==='FEMALE'" src="assets/user_female.png" alt="User" class="profile-image">
+                <img *ngIf="myUser.gender != 'MALE' && myUser.gender != 'FEMALE'" src="assets/user_null.png" alt="User"
+                    class="profile-image">
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Họ và tên</label>
+            <input type="text" class="form-control" [(ngModel)]="myUser.fullName">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Tài khoản Email</label>
+            <input type="email" class="form-control" [(ngModel)]="myUser.email">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Số điện thoại</label>
+            <input type="text" class="form-control" [(ngModel)]="myUser.phone">
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label">Ngày tạo tài khoản</label>
+            <input type="text" class="form-control" [disabled]="1"
+                value="{{myUser.createdAt | date:' dd/MM/yyyy HH:mm:ss' }}">
+        </div>
+
+        <div class="text-end">
+            <button class="btn btn-secondary me-2" (click)="cancelEdit()">Huỷ</button>
+            <button class="btn btn-primary" (click)="updateUserInf(myUser)">Lưu</button>
+        </div>
+
+    </div>
+
+    <!-- Change Password Form -->
+    <div *ngIf="activeForm === 'password'" class="card p-4 form-card bg-white">
+        <h5 class="mb-3 text-center">Đổi mật khẩu</h5>
+
+        <!-- Mật khẩu hiện tại -->
+        <div class="mb-3 position-relative">
+            <label class="form-label">Mật khẩu hiện tại</label>
+            <input [type]="showOld ? 'text' : 'password'" class="form-control" [(ngModel)]="passwordData.oldPassword"
+                name="oldPassword" placeholder="Nhập mật khẩu hiện tại" />
+            <i class="bi" [ngClass]="showOld ? 'bi-eye-slash' : 'bi-eye'" (click)="showOld = !showOld"
+                style="position: absolute; top: 38px; right: 12px; cursor: pointer; color: #555;"></i>
+        </div>
+
+        <!-- Mật khẩu mới -->
+        <div class="mb-3 position-relative">
+            <label class="form-label">Mật khẩu mới</label>
+            <input [type]="showNew ? 'text' : 'password'" class="form-control" [(ngModel)]="passwordData.newPassword"
+                name="newPassword" placeholder="Nhập mật khẩu mới" />
+            <i class="bi" [ngClass]="showNew ? 'bi-eye-slash' : 'bi-eye'" (click)="showNew = !showNew"
+                style="position: absolute; top: 38px; right: 12px; cursor: pointer; color: #555;"></i>
+        </div>
+
+        <!-- Xác nhận mật khẩu mới -->
+        <div class="mb-4 position-relative">
+            <label class="form-label">Xác nhận mật khẩu mới</label>
+            <input [type]="showConfirm ? 'text' : 'password'" class="form-control"
+                [(ngModel)]="passwordData.confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu mới" />
+            <i class="bi" [ngClass]="showConfirm ? 'bi-eye-slash' : 'bi-eye'" (click)="showConfirm = !showConfirm"
+                style="position: absolute; top: 38px; right: 12px; cursor: pointer; color: #555;"></i>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <button class="btn btn-secondary" (click)="activeForm='profile'">Quay lại</button>
+            <button class="btn btn-primary" (click)="changePassword()">Lưu thay đổi</button>
+        </div>
+    </div>
+
+
+    <!-- get order list -->
+    <div *ngIf="activeForm === 'orders'" class="card p-4 form-card bg-white">
+        <h5 class="mb-4 text-center fw-bold">Đơn hàng của tôi</h5>
+
+        <!-- TÌM KIẾM + BỘ LỌC -->
+        <div class="card p-3 mb-3 bg-light">
+            <div class="row g-2 align-items-end">
+                <!-- Tìm kiếm -->
+                <div class="col-md-4">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Tìm tên hoặc SĐT..."
+                            [(ngModel)]="searchQuery" (input)="applyFilters()">
+                    </div>
+                </div>
+
+                <!-- Từ ngày -->
+                <div class="col-md-2">
+                    <input type="date" class="form-control form-control-sm" [(ngModel)]="filterStartDate"
+                        (change)="applyFilters()">
+                </div>
+
+                <!-- Đến ngày -->
+                <div class="col-md-2">
+                    <input type="date" class="form-control form-control-sm" [(ngModel)]="filterEndDate"
+                        (change)="applyFilters()">
+                </div>
+
+                <!-- Trạng thái -->
+                <div class="col-md-2">
+                    <select class="form-control form-control-sm" [(ngModel)]="filterStatus" (change)="applyFilters()">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="PENDING">Chờ xử lý</option>
+                        <option value="PROCESSING">Đang chuẩn bị</option>
+                        <option value="COMPLETED">Hoàn tất</option>
+                        <option value="DELIVERED">Đã giao</option>
+                    </select>
+                </div>
+
+                <!-- Thanh toán -->
+                <div class="col-md-1">
+                    <select class="form-control form-control-sm" [(ngModel)]="filterPaymentStatus"
+                        (change)="applyFilters()">
+                        <option value="">TT</option>
+                        <option value="PENDING">Chưa TT</option>
+                        <option value="PAID">Đã TT</option>
+                    </select>
+                </div>
+
+                <!-- Xóa lọc -->
+                <div class="col-md-1">
+                    <button class="btn btn-outline-danger btn-sm w-100" (click)="clearFilters()"
+                        [disabled]="!hasActiveFilters()">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Badge hiển thị lọc -->
+            <div class="mt-2" *ngIf="hasActiveFilters()">
+                <span class="badge bg-primary me-1" *ngIf="searchQuery">
+                    <i class="bi bi-search"></i> "{{ searchQuery }}"
+                </span>
+                <span class="badge bg-info me-1" *ngIf="filterStartDate && filterEndDate">
+                    <i class="bi bi-calendar"></i> {{ filterStartDate | date:'dd/MM' }} - {{ filterEndDate |
+                    date:'dd/MM' }}
+                </span>
+                <span class="badge bg-warning me-1" *ngIf="filterStatus">
+                    <i class="bi bi-clock"></i> {{ formatStatus(filterStatus) }}
+                </span>
+                <span class="badge bg-success" *ngIf="filterPaymentStatus">
+                    <i class="bi bi-credit-card"></i> {{ formatPaymentStatus(filterPaymentStatus) }}
+                </span>
+            </div>
+        </div>
+
+        <!-- DANH SÁCH ĐƠN HÀNG -->
+        <div class="order-list">
+            <div *ngFor="let order of orders" class="order-card" (click)="viewOrder(order.orderId)">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="order-id fw-bold">Mã đơn: #{{ order.orderId }}</div>
+                    <div class="order-date text-muted small">
+                        {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                    </div>
+                </div>
+
+                <!-- Món ăn -->
+                <div class="order-foods mb-3">
+                    <div class="d-flex gap-2 flex-wrap justify-content-start">
+                        <div *ngFor="let item of order.orderItems" class="food-item">
+                            <img [src]="'assets/' + item.food.imageUrl" [alt]="item.food.name" class="food-img rounded"
+                                (error)="onImgError($event)">
+                            <div class="food-name text-center small mt-1">{{ item.food.name }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chi tiết -->
+                <div class="order-details">
+                    <div class="detail-row">
+                        <span class="label">Trạng thái:</span>
+                        <span class="value status-{{order.status.toLowerCase()}} fw-bold">
+                            {{ formatStatus(order.status) }}
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Tổng tiền:</span>
+                        <span class="value text-danger fw-bold">
+                            {{ order.totalPrice | currency:'VND':'symbol':'1.0-0' }}
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Thanh toán:</span>
+                        <span class="value">{{ formatPaymentMethod(order.paymentMethod) }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">TT thanh toán:</span>
+                        <span class="value payment-{{order.paymentStatus.toLowerCase()}} fw-bold">
+                            {{ formatPaymentStatus(order.paymentStatus) }}
+                        </span>
+                    </div>
+                    <div class="detail-row" *ngIf="order.paymentUrl">
+                        <span class="label">Link TT:</span>
+                        <a [href]="order.paymentUrl" target="_blank"
+                            class="value text-primary small text-decoration-underline">
+                            Xem
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Không có đơn -->
+        <div *ngIf="orders.length === 0" class="text-center text-muted py-5">
+            <i class="bi bi-receipt fs-1"></i>
+            <p class="mt-2">Bạn chưa có đơn hàng nào</p>
+        </div>
+    </div>
+
+    <div *ngIf="activeForm === 'chart'" class="card p-4 form-card bg-white">
+        <!-- TỔNG QUAN -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card chart-card text-center p-3 bg-primary text-white rounded-3 shadow-sm">
+                    <h5 class="mb-1">Tổng đơn hàng</h5>
+                    <h3 class="mb-0">{{ stats.totalOrders }}</h3>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card chart-card text-center p-3 bg-success text-white rounded-3 shadow-sm">
+                    <h5 class="mb-1">Tổng chi tiêu</h5>
+                    <h3 class="mb-0">{{ stats.totalSpent | number }} ₫</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2 BIỂU ĐỒ 1 DÒNG -->
+        <div class="row g-3 mb-4">
+            <!-- TOP 5 MÓN -->
+            <div class="col-lg-6">
+                <div class="card chart-card h-100 shadow-sm border-0">
+                    <div class="card-body p-3">
+                        <h6 class="text-primary fw-bold mb-3">Top 5 món yêu thích</h6>
+                        <canvas baseChart [data]="favoriteFoodsChartData" [options]="barChartOptions" [type]="'bar'"
+                            height="280">
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BIỂU ĐỒ TRÒN -->
+            <div class="col-lg-6">
+                <div class="card chart-card h-100 shadow-sm border-0">
+                    <div class="card-body p-3">
+                        <h6 class="text-success fw-bold mb-3">Tỷ lệ món ăn đã đặt</h6>
+                        <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" [type]="pieChartType"
+                            height="280">
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7 NGÀY + 12 THÁNG -->
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="card chart-card shadow-sm border-0">
+                    <div class="card-body p-3">
+                        <h6 class="text-info fw-bold mb-3">Đơn hàng 7 ngày gần đây</h6>
+                        <canvas baseChart [data]="ordersLast7DaysChartData" [options]="lineChartOptions" [type]="'line'"
+                            height="250">
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card chart-card shadow-sm border-0">
+                    <div class="card-body p-3">
+                        <h6 class="text-purple fw-bold mb-3">Chi tiêu theo tháng</h6>
+                        <canvas baseChart [data]="monthlySpendingChartData" [options]="columnChartOptions"
+                            [type]="'bar'" height="250">
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

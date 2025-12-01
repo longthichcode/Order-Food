@@ -2,35 +2,333 @@
 <app-admin-side-bar [(open)]="sidebarOpen"></app-admin-side-bar>
 
 <div class="user-container" [class.sidebar-closed]="!sidebarOpen">
-  <h2>Danh sách người dùng</h2>
+  <div class="page-header">
+    <h2>Danh sách người dùng</h2>
+    <span class="user-count">{{ allUser.length }} người dùng</span>
+  </div>
 
-  <div *ngIf="loading" class="loading">Đang tải...</div>
-  <div *ngIf="errMessage" class="error">{{ errMessage }}</div>
+  <!-- Loading & Error -->
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Đang tải dữ liệu...</p>
+  </div>
+  <div *ngIf="errMessage" class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle"></i> {{ errMessage }}
+  </div>
 
-  <table *ngIf="!loading && allUser.length > 0" class="user-table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Tài khoản</th>
-        <th>Họ tên</th>
-        <th>Email</th>
-        <th>Số điện thoại</th>
-        <th>Quyền</th>
-        <th>Ngày tạo</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let user of allUser">
-        <td>{{ user.userId }}</td>
-        <td>{{ user.username }}</td>
-        <td>{{ user.fullName }}</td>
-        <td>{{ user.email }}</td>
-        <td>{{ user.phone }}</td>
-        <td>{{ user.role }}</td>
+  <!-- Thanh tìm kiếm & bộ lọc -->
+  <div class="filters-container mb-4">
+    <div class="row g-3 align-items-center">
+
+      <!-- Tìm kiếm theo tên/email/sđt -->
+      <div class="col-lg-4 col-md-6">
+        <div class="input-group">
+          <span class="input-group-text">
+            <i class="bi bi-search"></i>
+          </span>
+          <input type="text" class="form-control" placeholder="Tìm tên, email, số điện thoại..."
+            [(ngModel)]="searchTerm" (ngModelChange)="applyFilter()">
+        </div>
+      </div>
+
+      <!-- Lọc theo quyền -->
+      <div class="col-lg-3 col-md-6">
+        <select class="form-select" [(ngModel)]="selectedRole" (change)="applyFilter()">
+          <option [ngValue]="null">Tất cả quyền</option>
+          <option value="ADMIN">ADMIN</option>
+          <option value="STAFF">STAFF</option>
+          <option value="CUSTOMER">CUSTOMER</option>
+        </select>
+      </div>
+
+      <!-- Lọc theo trạng thái -->
+      <div class="col-lg-3 col-md-6">
+        <select class="form-select" [(ngModel)]="selectedStatus" (change)="applyFilter()">
+          <option [ngValue]="null">Tất cả trạng thái</option>
+          <option [ngValue]="true">Đang hoạt động</option>
+          <option [ngValue]="false">Bị khóa</option>
+        </select>
+      </div>
+
+      <!-- Nút reset bộ lọc -->
+      <div class="col-lg-2 col-md-6 text-end">
+        <button class="btn btn-outline-secondary" (click)="resetFilters()"
+          [disabled]="!searchTerm && !selectedRole && selectedStatus === null">
+          <i class="bi bi-arrow-counterclockwise"></i> Xóa lọc
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bảng người dùng -->
+  <div *ngIf="!loading && allUser.length > 0" class="table-responsive">
+    <table class="user-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tài khoản</th>
+          <th>Họ tên</th>
+          <th>Email</th>
+          <th>Số điện thoại</th>
+          <th>Quyền</th>
+          <th>Trạng thái</th>
+          <th>Ngày tạo</th>
+          <th class="action-header">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers; let i = index" [class.striped]="i % 2 === 0" class="user-row">
+        <td><span class="badge-id">#{{ user.userId }}</span></td>
+        <td><strong>{{ user.username }}</strong></td>
+        <td>{{ user.fullName || '—' }}</td>
+        <td><a href="mailto:{{user.email}}" class="text-primary">{{ user.email }}</a></td>
+        <td>{{ user.phone || '—' }}</td>
+        <td>
+          <span *ngIf="user.status; else blocked" class="text-success fw-bold">
+            <i class="bi bi-check-circle-fill"></i> Đang hoạt động
+          </span>
+          <ng-template #blocked>
+            <span class="text-danger fw-bold">
+              <i class="bi bi-x-circle-fill"></i> Đang bị khóa
+            </span>
+          </ng-template>
+        </td>
+        <td>
+          <span class="role-badge" [ngClass]="{
+                    'admin': user.role === 'ADMIN',
+                    'staff': user.role === 'STAFF',
+                    'customer': user.role === 'CUSTOMER'
+                  }">
+            {{ user.role }}
+          </span>
+
+        </td>
         <td>{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
-      </tr>
-    </tbody>
-  </table>
+        <!-- Cột hành động – DÙNG data-bs-toggle thay vì (click) -->
+        <td class="action-column">
+          <div class="action-buttons">
+            <!-- Liên hệ -->
+            <button class="action-btn btn-contact" title="Liên hệ" data-bs-toggle="modal" data-bs-target="#contactModal"
+              (click)="selectUser(user)">
+              <i class="bi bi-chat-dots-fill"></i>
+            </button>
 
-  <div *ngIf="!loading && allUser.length === 0" class="empty">Không có người dùng nào.</div>
+            <!-- Khoá -->
+            <button class="action-btn btn-lock" title="khoá tài khoản" data-bs-toggle="modal" data-bs-target="#disUser "
+              (click)="selectUser(user)" [disabled]="user.status==false">
+              <i class="bi bi-lock-fill"></i>
+            </button>
+
+            <!-- Mở Khoá -->
+            <button class="action-btn btn-unlock" title="Mở tài khoản" data-bs-toggle="modal"
+              data-bs-target="#undisUser " (click)="selectUser(user)" [disabled]="user.status==true">
+              <i class="bi bi-unlock-fill"></i>
+            </button>
+
+            <!-- Phân quyền -->
+            <button class="action-btn btn-role" title="Phân quyền" data-bs-toggle="modal" data-bs-target="#roleModal"
+              (click)="selectUser(user)">
+              <i class="bi bi-shield-lock-fill"></i>
+            </button>
+          </div>
+        </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && allUser.length === 0" class="empty-state">
+    <i class="bi bi-people display-1 text-muted"></i>
+    <p>Chưa có người dùng nào.</p>
+  </div>
 </div>
+
+<!-- Modal Liên hệ -->
+<div class="modal fade" id="contactModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Liên hệ với {{ selectedUser?.fullName || selectedUser?.username }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-5">
+        <div class="row g-3">
+
+          <!-- Card gửi email -->
+          <div class="col-md-6 card-contact" *ngIf="selectedUser?.email">
+            <div class="card  shadow-sm p-3 d-flex align-items-center flex-row" (click)="toggleEmailForm()"
+              style="cursor:pointer;">
+              <i class="bi bi-envelope-fill fs-1 me-3 text-primary"></i>
+              <div>
+                <strong>Gửi Email tới</strong><br>
+                <small>{{ selectedUser?.email }}</small>
+              </div>
+            </div>
+          </div>
+          <!-- Card gọi điện -->
+          <div class="col-md-6 card-contact" *ngIf="selectedUser?.phone">
+            <div class="card shadow-sm p-3 d-flex align-items-center flex-row" (click)="callPhone()"
+              style="cursor:pointer;">
+              <i class="bi bi-telephone-fill fs-1 me-3 text-success"></i>
+              <div>
+                <strong>Gửi SMS cho</strong><br>
+                <small>{{ selectedUser?.phone }}</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form gửi email (collapse) -->
+          <div class="col-12 mt-3" *ngIf="showEmailForm">
+            <div class="card p-3 shadow-sm">
+
+              <div class="mb-3">
+                <label class="form-label fw-bold">Tiêu đề</label>
+                <input type="text" class="form-control" [(ngModel)]="emailSubject" placeholder="Nhập tiêu đề email">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-bold">Nội dung</label>
+                <textarea rows="4" class="form-control" [(ngModel)]="emailMessage"
+                  placeholder="Nhập nội dung email"></textarea>
+              </div>
+
+              <button class="btn btn-primary w-100" (click)="sendEmail()">
+                Gửi email
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal KHOÁ Tài Khoản (đỏ - nguy hiểm) -->
+<div class="modal fade" id="disUser" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-lock-fill me-2"></i> Khoá tài khoản
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center py-5">
+        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3.5rem;"></i>
+        <p class="lead mt-4">Bạn có chắc chắn muốn <strong class="text-danger">khoá</strong> tài khoản này không?</p>
+        <h4 class="fw-bold text-dark">{{ selectedUser?.username }}</h4>
+        <p class="text-muted"><small>ID: #{{ selectedUser?.userId }}</small></p>
+
+        <div class="mt-4">
+          <button class="btn btn-danger btn-lg px-5 me-3" (click)="confirmDisUser()">
+            <i class="bi bi-lock-fill"></i> Khoá tài khoản
+          </button>
+          <button class="btn btn-secondary btn-lg px-4" data-bs-dismiss="modal">
+            Huỷ bỏ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal MỞ KHOÁ Tài Khoản (xanh lá - tích cực) -->
+<div class="modal fade" id="undisUser" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-unlock-fill me-2"></i> Mở khoá tài khoản
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center py-5">
+        <i class="bi bi-check-circle-fill text-success" style="font-size: 3.5rem;"></i>
+        <p class="lead mt-4">Bạn có muốn <strong class="text-success">mở khoá</strong> và cho phép tài khoản này hoạt
+          động trở lại?</p>
+        <h4 class="fw-bold text-dark">{{ selectedUser?.username }}</h4>
+        <p class="text-muted"><small>ID: #{{ selectedUser?.userId }}</small></p>
+
+        <div class="mt-4">
+          <button class="btn btn-success btn-lg px-5 me-3" (click)="confirmUnblockUser()">
+            <i class="bi bi-unlock-fill"></i> Mở khoá
+          </button>
+          <button class="btn btn-secondary btn-lg px-4" data-bs-dismiss="modal">
+            Huỷ bỏ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Phân quyền -->
+<div class="modal fade" id="roleModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background: #9c27b0; color: white;">
+        <h5 class="modal-title">Phân quyền cho {{ selectedUser?.username }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label fw-bold">Chọn quyền mới</label>
+        <div class="d-flex gap-4 flex-wrap">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="role" id="r1" value="CUSTOMER" [(ngModel)]="newRole">
+            <label class="form-check-label" for="r1">
+              <span class="badge bg-success">CUSTOMER</span> Khách hàng
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="role" id="r2" value="ADMIN" [(ngModel)]="newRole">
+            <label class="form-check-label" for="r2">
+              <span class="badge bg-danger">ADMIN</span> Quản trị viên
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="role" id="r2" value="STAFF" [(ngModel)]="newRole">
+            <label class="form-check-label" for="r2">
+              <span class="badge" style="background-color: #9c27b0;">STAFF</span> Nhân viên
+            </label>
+          </div>
+        </div>
+        <div class="alert alert-info mt-3">
+          Quyền hiện tại: <strong>{{ selectedUser?.role || 'USER' }}</strong>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+        <button type="button" class="btn btn-primary" (click)="saveRole()">
+          Lưu thay đổi
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CSS bổ sung cho modal đẹp hơn -->
+<style>
+  .bg-purple {
+    background: linear-gradient(135deg, #9c27b0, #e91e63) !important;
+  }
+
+  .contact-options button {
+    min-width: 180px;
+    padding: 20px;
+  }
+
+  .role-options .form-check {
+    margin-right: 30px;
+    margin-bottom: 15px;
+  }
+
+  .role-options .form-check-input:checked+.form-check-label {
+    font-weight: bold;
+  }
+</style>

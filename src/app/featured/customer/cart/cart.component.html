@@ -67,10 +67,39 @@
                     </div>
                 </div>
 
-                <!-- Ghi chú -->
+                <!-- Khuyến mãi -->
                 <div class="card p-3 shadow-sm">
-                    <h6 class="fw-bold mb-2">Ghi chú cho món ăn</h6>
-                    <input type="text" class="form-control" placeholder="VD: Ít cay, không hành..." />
+                    <h6 class="fw-bold mb-2">Chọn khuyến mãi áp dụng</h6>
+                    <div class="promotion-dropdown position-relative">
+                        <div class="selected-promo border rounded p-2 d-flex justify-content-between align-items-center"
+                            (click)="toggleDropdown()">
+                            <span *ngIf="selectedPromotion; else noPromo">
+                                <strong>{{ selectedPromotion.code }}</strong> -
+                                {{ selectedPromotion.description }} ({{ selectedPromotion.discountPercent }}%)
+                            </span>
+                            <ng-template #noPromo>
+                                <span class="text-muted">Chọn khuyến mãi</span>
+                            </ng-template>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+
+                        <!-- Danh sách khuyến mãi xổ xuống -->
+                        <div class="promotion-list border rounded mt-2 p-2 bg-white shadow" *ngIf="dropdownOpen">
+                            <div *ngFor="let promotion of promotions" class="promotion-item p-2 mb-2 rounded"
+                                [class.active]="promotion === selectedPromotion" (click)="selectPromotion(promotion)">
+                                <div class="fw-bold text-primary">{{ promotion.code }}</div>
+                                <div class="text-muted small">{{ promotion.description }}</div>
+                                <div class="text-success">{{ promotion.discountPercent }}% giảm giá</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="d-flex gap-2 mt-2">
+                            <button class="btn btn-sm btn-primary" [disabled]="!selectedPromotion" (click)="applySelectedPromotion()">Áp dụng</button>
+                            <button class="btn btn-sm btn-outline-secondary" (click)="removePromotion()">Hủy áp dụng</button>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
 
@@ -81,17 +110,46 @@
 
                     <div class="mb-3">
                         <label class="form-label">Họ và tên *</label>
-                        <input type="text" class="form-control" placeholder="Nhập họ và tên" />
+                        <input type="text" class="form-control" placeholder="Nhập họ và tên" [(ngModel)]="customerName" />
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Số điện thoại *</label>
-                        <input type="text" class="form-control" placeholder="Nhập số điện thoại" />
+                        <input type="text" class="form-control" placeholder="Nhập số điện thoại" [(ngModel)]="customerPhone" />
                     </div>
 
-                    <div class="mb-2">
+                    <div class="mb-3">
                         <label class="form-label">Địa chỉ giao hàng *</label>
-                        <textarea class="form-control" placeholder="Nhập địa chỉ chi tiết"></textarea>
+                        <textarea class="form-control" placeholder="Nhập địa chỉ chi tiết" [(ngModel)]="customerAddress"></textarea>
+                    </div>
+
+                    <!-- Phương thức thanh toán -->
+                    <div class="mb-2">
+                        <label class="form-label">Phương thức thanh toán *</label>
+                        <div class="payment-dropdown position-relative">
+                            <div class="selected-payment border rounded p-2 d-flex justify-content-between align-items-center"
+                                (click)="togglePaymentDropdown()">
+                                <span *ngIf="selectedPaymentMethod; else noPayment">
+                                    <i class="{{ selectedPaymentMethod.icon }} me-2"></i>
+                                    {{ selectedPaymentMethod.name }}
+                                </span>
+                                <ng-template #noPayment>
+                                    <span class="text-muted">Chọn phương thức thanh toán</span>
+                                </ng-template>
+                                <i class="bi bi-chevron-down"></i>
+                            </div>
+
+                            <!-- Danh sách phương thức thanh toán xổ xuống -->
+                            <div class="payment-list border rounded mt-2 p-2 bg-white shadow" *ngIf="paymentDropdownOpen">
+                                <div *ngFor="let payment of paymentMethods" class="payment-item p-2 mb-2 rounded"
+                                    [class.active]="payment === selectedPaymentMethod" (click)="selectPaymentMethod(payment)">
+                                    <div class="d-flex align-items-center">
+                                        <i class="{{ payment.icon }} me-2"></i>
+                                        <span class="fw-bold">{{ payment.name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -108,7 +166,12 @@
 
                     <div class="d-flex justify-content-between mb-2">
                         <span>Tạm tính:</span>
-                        <span>{{ getTotal() | currency:'VND':'symbol':'1.0-0' }}</span>
+                        <span>{{ getSubtotal() | currency:'VND':'symbol':'1.0-0' }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2" *ngIf="getDiscountAmount() > 0">
+                        <span>Giảm giá:</span>
+                        <span class="text-success">-{{ getDiscountAmount() | currency:'VND':'symbol':'1.0-0' }}</span>
                     </div>
 
                     <div class="d-flex justify-content-between mb-2">
@@ -120,10 +183,10 @@
 
                     <div class="d-flex justify-content-between fw-bold text-danger mb-3">
                         <span>Tổng cộng:</span>
-                        <span>{{ getTotal() | currency:'VND':'symbol':'1.0-0' }}</span>
+                        <span>{{ getFinalTotal() | currency:'VND':'symbol':'1.0-0' }}</span>
                     </div>
 
-                    <button class="btn btn-danger w-100">Đặt Hàng Ngay</button>
+                    <button class="btn btn-danger w-100" (click)="placeOrder()">Đặt Hàng Ngay</button>
                     <p class="text-muted small mt-2">
                         Bằng cách đặt hàng, bạn đồng ý với các điều khoản sử dụng của chúng tôi
                     </p>

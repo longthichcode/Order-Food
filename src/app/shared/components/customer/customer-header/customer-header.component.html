@@ -29,10 +29,42 @@
                 class="cart-badge">
                 {{ cartCount }}
               </span></a>
-
           </li>
 
-          <!-- Dropdown -->
+          <!-- Notifications Dropdown -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" (click)="toggleNotificationsDropdown()">
+              <i class="bi bi-bell"></i> Thông báo
+              <span *ngIf="unreadNotificationsCount$ | async as unreadCount" class="notification-badge">
+                {{ unreadCount }}
+              </span>
+            </a>
+            <ul class="dropdown-menu notification-dropdown" [class.show]="notificationsOpen">
+              <li *ngIf="(notifications$ | async)?.length === 0">
+                <div class="dropdown-item">Không có thông báo</div>
+              </li>
+              <li *ngFor="let notification of notifications$ | async">
+                <div class="dropdown-item notification-item border" [ngClass]="{'unread': notification.status === 'UNREAD'}">
+                  <div class="notification-content" (click)="readNotification(notification.notificationId)">
+                    <span>{{ notification.message }}</span>
+                    <small>{{ notification.createdAt | date: 'short' }}</small>
+                    <div class="notification-actions d-flex justify-content-between mt-2">
+                      <p class="action-link" (click)="viewNotificationDetail(notification.order.orderId)">Xem chi tiết</p>
+                      <p class="action-link" (click)="deleteNoti(notification.notificationId)">Xoá</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <hr class="dropdown-divider" />
+              </li>
+              <li>
+                <a class="dropdown-item" (click)="viewNotifications()">Xoá tất cả thông báo</a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Account Dropdown -->
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" (click)="toggleDropdown()">
               <i class="bi bi-person-circle"></i> Tài khoản
@@ -51,8 +83,7 @@
                 <hr class="dropdown-divider" />
               </li>
               <li>
-                <a class="dropdown-item text-danger" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Đăng
-                  xuất</a>
+                <a class="dropdown-item text-danger" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
               </li>
             </ul>
           </li>

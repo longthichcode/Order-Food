@@ -1,0 +1,13 @@
+<div class="container my-5">
+  <div class="card p-4 text-center shadow-sm">
+    <div class="display-6 text-success mb-3"><i class="bi bi-check-circle"></i> Thanh toán thành công</div>
+    <p class="text-muted">Cảm ơn bạn đã thanh toán. Đơn hàng của bạn đã được xác nhận.</p>
+
+    <div *ngIf="orderCode" class="mt-3">
+      <p>Mã đơn hàng: <strong>#{{ orderCode }}</strong></p>
+    </div>
+
+  </div>
+</div>
+
+

@@ -79,6 +79,15 @@ export class CartServiceService {
     );
   }
 
+  applyPromotion(userId: number, promoCode: string): Observable<CartDTO> {
+    const params = new HttpParams().set('promoCode', promoCode);
+    return this.http.post<CartDTO>(`${this.baseUrl}/${userId}/apply-promotion`, {}, { params });
+  }
+  
+  removePromotion(userId: number): Observable<CartDTO> {
+    return this.http.delete<CartDTO>(`${this.baseUrl}/${userId}/remove-promotion`);
+  }
+
 
   // ========== Cart Count ==========
 

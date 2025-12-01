@@ -1,0 +1,120 @@
+<app-admin-header></app-admin-header>
+<app-admin-side-bar [(open)]="sidebarOpen"></app-admin-side-bar>
+
+<div class="promotion-container" [class.sidebar-closed]="!sidebarOpen">
+    <div class="page-header">
+        <h2>Quản lí khuyến mãi</h2>
+        <span class="promotion-count">{{ allPromo.length }} Khuyến mãi</span>
+    </div>
+
+    <!-- Loading & Error -->
+    <div *ngIf="loading" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Đang tải dữ liệu...</p>
+    </div>
+    <div *ngIf="errMessage" class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i> {{ errMessage }}
+    </div>
+
+    <table class="promotion-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Mã khuyến mãi</th>
+                <th>Mô tả</th>
+                <th>Giá trị</th>
+                <th>Trạng thái</th>
+                <th>Ngày bắt đầu</th>
+                <th>Ngày kết thúc</th>
+                <th class="action-header">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let promo of allPromo; let i = index" [class.striped]="i % 2 === 0" class="promotion-row">
+                <td><span class="badge-id">#{{ promo.promoId }}</span></td>
+                <td><strong>{{ promo.code }}</strong></td>
+                <td>{{ promo.description }}</td>
+                <td>{{ promo.discountPercent }} %</td>
+                <td>
+                    <span class="status-badge" [class]="getStatusClass(promo)">
+                        {{ getPromotionStatus(promo) }}
+                    </span>
+                </td>
+                <td>{{ promo.startDate | date: 'dd/MM/yyyy' }}</td>
+                <td>{{ promo.endDate | date: 'dd/MM/yyyy' }}</td>
+                <td>
+                    <button class="action-btn edit-btn me-2" title="Sửa" (click)="openEditModal(promo)">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="action-btn delete-btn" title="Xóa">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- modal edit -->
+
+<!-- Modal Chỉnh sửa Khuyến mãi -->
+<div class="modal fade" id="editPromotionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">
+            <i class="bi bi-pencil-square me-2"></i>
+            Chỉnh sửa khuyến mãi #{{ editForm.promoId }}
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+  
+        <div class="modal-body">
+          <form>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Mã khuyến mãi</label>
+                <input type="text" class="form-control" [(ngModel)]="editForm.code" name="code" uppercase required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Giá trị giảm (%)</label>
+                <input type="number" class="form-control" [(ngModel)]="editForm.discountPercent" name="discountPercent">
+              </div>
+  
+              <div class="col-12">
+                <label class="form-label fw-bold">Mô tả</label>
+                <textarea class="form-control" rows="3" [(ngModel)]="editForm.description" name="description"></textarea>
+              </div>
+  
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Ngày bắt đầu</label>
+                <input type="date" class="form-control" [(ngModel)]="editForm.startDate" name="startDate">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Ngày kết thúc</label>
+                <input type="date" class="form-control" [(ngModel)]="editForm.endDate" name="endDate">
+              </div>
+  
+              <div class="col-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="isActiveSwitch" [(ngModel)]="editForm.isActive" name="isActive">
+                  <label class="form-check-label fw-bold" for="isActiveSwitch">
+                    {{ editForm.isActive ? 'Đang hoạt động' : 'Tạm dừng' }}
+                  </label>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+  
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="closeModal('editPromotionModal')">
+            Hủy
+          </button>
+          <button type="button" class="btn btn-primary" (click)="saveChanges()">
+            <i class="bi bi-check-lg"></i> Lưu thay đổi
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -27,4 +27,12 @@ export class AdminSideBarComponent {
   user(){
     this.router.navigate(['admin/user'])
   }
+
+  order(){
+    this.router.navigate(['admin/order'])
+  }
+  
+  promotion(){
+    this.router.navigate(['admin/promotion'])
+  }
 }

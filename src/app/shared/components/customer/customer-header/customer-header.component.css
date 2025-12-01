@@ -127,8 +127,7 @@ body {
     font-weight: 500;
     padding: 10px 16px;
     display: flex;
-    align-items: center;
-    gap: 10px;
+    gap: 5px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -172,6 +171,110 @@ body {
 
 .hamburger.open span:nth-child(3) {
     transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Cart badge */
+.cart-badge {
+    background-color: #ff5722;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 4px 8px;
+    min-width: 20px;
+    height: 20px;
+    line-height: 12px;
+    text-align: center;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+.cart-badge:hover {
+    background-color: #e64a19;
+    transform: scale(1.1);
+}
+
+/* Notification badge */
+.notification-badge {
+    background-color: #dc3545;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 4px 8px;
+    min-width: 20px;
+    height: 20px;
+    line-height: 12px;
+    text-align: center;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+.notification-badge:hover {
+    background-color: #c82333;
+    transform: scale(1.1);
+}
+
+/* Unread notification item in dropdown */
+.dropdown-menu .unread {
+    background-color: #fcc2cc64;
+    font-weight: 600;
+}
+
+/* Notification timestamp */
+.dropdown-item small {
+    color: #6c757d;
+    font-size: 12px;
+    display: block;
+}
+
+/* Notification dropdown with scrollbar */
+.notification-dropdown {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Tùy chỉnh thanh trượt */
+.notification-dropdown::-webkit-scrollbar {
+    width: 8px;
+}
+
+.notification-dropdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.notification-dropdown::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.notification-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Notification actions */
+
+.notification-actions .action-link {
+    font-size: 13px;
+    color: #1565c0;
+    cursor: pointer;
+    margin: 0;
+    transition: color 0.3s ease;
+}
+
+.notification-actions .action-link:hover {
+    color: #0d47a1;
 }
 
 /* Responsive */
@@ -226,32 +329,13 @@ body {
     .dropdown-menu.show {
         display: block;
     }
-}
 
-/* Cart badge */
-.cart-badge {
-    background-color: #ff5722;
-    /* màu cam nổi bật hơn đỏ Bootstrap */
-    color: #fff;
-    font-size: 12px;
-    font-weight: bold;
-    border-radius: 50%;
-    padding: 4px 8px;
-    min-width: 20px;
-    height: 20px;
-    line-height: 12px;
-    text-align: center;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    margin-left: 6px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
-    /* nổi lên một chút cho cân đối */
-    transition: all 0.3s ease;
-}
-
-.cart-badge:hover {
-    background-color: #e64a19;
-    transform: scale(1.1);
+    /* Responsive adjustments for notification badge */
+    .notification-badge {
+        font-size: 10px;
+        min-width: 16px;
+        height: 16px;
+        padding: 2px 6px;
+        line-height: 12px;
+    }
 }

@@ -53,8 +53,13 @@ export class LoginComponent {
         }
       },
       error: (err) => {
+        if(err.status == 200){
+          this.errorMessage = 'Tài khoản đã bị vô hiệu hoá !!!';
+        }
+        else{
+          this.errorMessage = 'Sai tài khoản hoặc mật khẩu!';
+        }
         console.error('Login error:', err);
-        this.errorMessage = 'Sai tài khoản hoặc mật khẩu!';
       }
     });
   }

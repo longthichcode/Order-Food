@@ -135,13 +135,8 @@ export class MenuComponent implements OnInit {
 
   /** Lọc theo danh mục */
   filterByCategory(categoryId: number): void {
-    if(categoryId!=0){
       this.selectedCategory = categoryId;
       this.applyFilters();
-    }
-    else{
-      this.getAllFood();
-    }
   }
 
   /** Áp dụng tất cả bộ lọc (tên, danh mục, giá) */
@@ -155,7 +150,7 @@ export class MenuComponent implements OnInit {
     }
 
     // Lọc theo danh mục
-    if (this.selectedCategory !== 0) {
+    if (this.selectedCategory != 0) {
       filteredFoods = filteredFoods.filter(f => f.category?.categoryId === this.selectedCategory);
     }
 

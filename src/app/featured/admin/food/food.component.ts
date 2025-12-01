@@ -111,7 +111,7 @@ export class FoodComponent implements OnInit {
 
   // Pagination
   page: number = 1;
-  itemsPerPage: number = 5;
+  itemsPerPage: number = 10;
   totalItems: number = 0;
 
   // File choose
@@ -265,7 +265,11 @@ export class FoodComponent implements OnInit {
       this.foodEdit.category = { categoryId: this.categorySelectEdit } as any;
       this.foodService.updateFood(this.foodEdit).subscribe({
         next: () => {
-          this.matSnackBar.open('Cập nhật thành công!', 'Đóng', { duration: 2000 });
+          this.matSnackBar.open('Cập nhật thành công!', 'Đóng', 
+            { 
+              duration: 2000 ,
+              panelClass:['success']
+            });
           this.getAllFoods();
           this.closeEditModal();
         },

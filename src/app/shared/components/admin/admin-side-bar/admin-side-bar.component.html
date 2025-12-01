@@ -1,14 +1,16 @@
 <aside class="admin-sidebar" [class.collapsed]="!open">
     <div class="sidebar-header">
-        <img src="assets/logo.jpg" (click)="toggleSidebar()" class="sidebar-logo" width="50" height="50" alt="Logo">
+        <img src="assets/logo_login.jpg" style="border-radius: 25%;" (click)="toggleSidebar()" class="sidebar-logo" width="50" height="50" alt="Logo">
         <span *ngIf="open" class="sidebar-title">Order Food</span>
     </div>
 
     <nav>
         <ul>
             <li><a (click)="food()" routerLinkActive="active"><i class="bi bi-list"></i> <span *ngIf="open">Món ăn</span></a></li>
-            <li><a routerLink="/admin/orders" routerLinkActive="active"><i class="bi bi-receipt"></i> <span *ngIf="open">Đơn hàng</span></a></li>
+            <li><a (click)="order()" routerLink="/admin/orders" routerLinkActive="active"><i class="bi bi-receipt"></i> <span *ngIf="open">Đơn hàng</span></a></li>
             <li><a (click)="user()" routerLinkActive="active"><i class="bi bi-people"></i> <span *ngIf="open">Người dùng</span></a></li>
+            <li><a (click)="promotion()" routerLinkActive="active"><i class="bi bi-percent"></i> <span *ngIf="open">Khuyến mãi</span></a></li>
+            <li><a (click)="user()" routerLinkActive="active"><i class="bi bi-chat-left-text-fill"></i> <span *ngIf="open">Đánh giá</span></a></li>
         </ul>
     </nav>
 </aside>

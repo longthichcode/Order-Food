@@ -14,7 +14,6 @@
         <button [class.active]="activeTab === 'register'" (click)="activeTab = 'register'">Đăng ký</button>
       </div>
 
-      <!-- Login Form -->
       <form *ngIf="activeTab === 'login'" (ngSubmit)="onLogin()">
         <div class="form-group">
           <label for="username">Tài khoản</label>
@@ -24,10 +23,27 @@
         <div class="form-group">
           <label for="password">Mật khẩu</label>
           <input type="password" id="password" [(ngModel)]="password" name="password" required>
+          <div class="forgot-password p-0 m-0">
+            <a href="#">Quên mật khẩu?</a>
+          </div>
         </div>
-
         <button type="submit" class="btn-login">Đăng nhập</button>
+
+        <div class="social-login">
+          <div class="divider">
+            <span>HOẶC</span>
+          </div>
+          <div class="social-buttons">
+            <button type="button" class="btn-facebook">
+              <img src="assets/logo_fb.jpg" alt="Facebook"> Facebook
+            </button>
+            <button type="button" class="btn-google">
+              <img src="assets/logo_gg.png" alt="Google"> Google
+            </button>
+          </div>
+        </div>
       </form>
+
 
       <!-- Register Form -->
       <form *ngIf="activeTab === 'register'" (ngSubmit)="onRegister()">

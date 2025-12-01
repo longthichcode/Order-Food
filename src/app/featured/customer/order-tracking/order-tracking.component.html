@@ -1,0 +1,139 @@
+<app-customer-header></app-customer-header>
+<div class="container my-5" *ngIf="!loading && order">
+
+    <!-- Nút quay lại -->
+    <div class="mb-3">
+        <a routerLink="/" class="btn btn-outline-secondary">← Quay Lại</a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Cột trái: theo dõi đơn hàng -->
+        <div class="col-lg-8">
+            <div class="card p-4 shadow-sm">
+
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <div class="fw-bold">Đơn hàng #ORD-{{ order.orderId }}</div>
+                        <div class="text-muted small">Đặt lúc: {{ order.createdAt | date:'HH:mm:ss dd/MM/yyyy' }}</div>
+                    </div>
+                    <span class="badge bg-warning text-dark" *ngIf="order.status === 'PENDING'">Chờ xác nhận</span>
+                    <span class="badge bg-info text-dark" *ngIf="order.status === 'PROCESSING'">Đang xử lý</span>
+                    <span class="badge bg-success" *ngIf="order.status === 'COMPLETED'">Hoàn tất</span>
+                    <span class="badge bg-primary" *ngIf="order.status === 'DELIVERED'">Đã giao</span>
+                </div>
+
+                <hr>
+
+                <!-- Tiến độ đơn hàng -->
+                <h6 class="fw-bold mb-2">Tiến độ đơn hàng</h6>
+                <div class="progress mb-3" style="height: 6px;">
+                    <div class="progress-bar" role="progressbar" [style.width.%]="getProgress(order.status)"></div>
+                </div>
+
+                <ul class="list-unstyled mb-3">
+                    <li class="mb-2">
+                        <i class="bi" [ngClass]="getStepIcon('PENDING', order.status)"></i> Chờ xác nhận
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi" [ngClass]="getStepIcon('PROCESSING', order.status)"></i> Đã xác nhận / Đang chuẩn
+                        bị
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi" [ngClass]="getStepIcon('COMPLETED', order.status)"></i> Hoàn tất / Sẵn sàng giao
+                    </li>
+                    <li>
+                        <i class="bi" [ngClass]="getStepIcon('DELIVERED', order.status)"></i> Đã giao hàng
+                    </li>
+                </ul>
+
+                <!-- Thời gian dự kiến -->
+                <div *ngIf="order.status === 'PENDING'"
+                    class="alert alert-warning d-flex align-items-center small mb-0">
+                    <i class="bi bi-clock me-2"></i>
+                    <div><strong>Thời gian dự kiến:</strong> Chờ nhà hàng xác nhận đơn hàng</div>
+                </div>
+
+            </div>
+
+            <!-- Tóm tắt đơn hàng (có hiển thị danh sách món ăn) -->
+            <div class="card p-4 mt-3 shadow-sm">
+                <h6 class="fw-bold mb-3">Tóm Tắt Đơn Hàng</h6>
+
+                <div class="d-flex justify-content-between mb-2 small">
+                    <span>Tên khách</span>
+                    <span>{{ order.guestName || order.user.fullName }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2 small">
+                    <span>SĐT</span>
+                    <span>{{ order.guestPhone || order.user.phone }}</span>
+                </div>
+
+                <!-- Danh sách món ăn -->
+                <div class="mt-3">
+                    <h6 class="fw-bold">Danh sách món ăn</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            *ngFor="let item of orderItems">
+                            <span>
+                                {{ item.food.name }}
+                                <small class="text-muted">x{{ item.quantity }}</small>
+                            </span>
+                            <span>{{ item.price | currency:'VND':'symbol':'1.0-0' }}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Tổng cộng -->
+                <div class="d-flex justify-content-between small mt-3">
+                    <span>Tổng cộng:</span>
+                    <span class="fw-bold text-danger">
+                        {{ order.totalPrice | currency:'VND':'symbol':'1.0-0' }}
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Cột phải: thông tin giao hàng -->
+        <div class="col-lg-4">
+            <div class="card p-4 shadow-sm mb-3">
+                <h6 class="fw-bold mb-3">Thông Tin Giao Hàng</h6>
+                <p class="mb-2 text-muted small"> <strong class="me-2"><i class="bi bi-person me-2"></i>Họ tên:</strong>
+                    {{ order.guestName }}</p>
+                <p class="mb-2 text-muted small"><strong class="me-4"><i class="bi bi-telephone me-2"></i>SĐT:</strong>
+                    {{ order.guestPhone }}</p>
+                <p class="mb-0 text-muted small"><strong class="me-2"><i class="bi bi-geo-alt me-2"></i>Địa
+                        chỉ:</strong> {{ order.address }} </p>
+            </div>
+
+            <div class="card p-4 shadow-sm mb-3">
+                <h6 class="fw-bold mb-3">Thanh Toán</h6>
+                <p class="mb-2 text-muted small" *ngIf="order.paymentStatus !== 'PENDING'">
+                    <strong class="me-2"><i class="bi bi-person me-2"></i>Giao dịch đã được xử lí</strong>
+                    <a [href]="sanitizedPaymentUrl" target="_blank">Liên kết thanh toán </a>
+                </p>
+                <div *ngIf="order.paymentStatus === 'PENDING' && sanitizedPaymentUrl">
+                    <p class="text-info small mb-2">Vui lòng hoàn tất thanh toán bên dưới:</p>
+                    <iframe [src]="sanitizedPaymentUrl" width="100%" height="500px" frameborder="0"
+                        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+                </div>
+            </div>
+
+            <div class="card p-4 shadow-sm">
+                <h6 class="fw-bold mb-2">Cần Hỗ Trợ?</h6>
+                <p class="text-muted small mb-2">
+                    Liên hệ với chúng tôi nếu bạn có bất kỳ câu hỏi nào về đơn hàng.
+                </p>
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-telephone text-primary me-2"></i>
+                    <span class="fw-semibold">Gọi: <span class="ms-4 text-muted">0344 327 353</span> </span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-envelope text-primary me-2"></i>
+                    <span class="fw-semibold">Email: <span class="ms-2 text-muted">lvu7071&#64;gmail.com</span> </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

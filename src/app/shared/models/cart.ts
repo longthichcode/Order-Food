@@ -15,3 +15,13 @@ export interface CartDTO {
   cartItems: CartItemDTO[];
   totalPrice: number;
 }
+
+export interface promotions{
+  promoId: number,
+  code: string,
+  description: string,
+  discountPercent: number,
+  startDate: Date,
+  endDate: Date,
+  isActive: boolean
+}

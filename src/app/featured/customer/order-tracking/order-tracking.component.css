@@ -1,0 +1,14 @@
+/* styling tối giản, có thể tuỳ biến theo theme */
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 3px;
+  }
+  .progress-bar {
+    background: linear-gradient(90deg, #0d6efd, #20c997);
+  }
+  li i {
+    margin-right: 6px;
+    font-size: 1.1rem;
+  }
+  

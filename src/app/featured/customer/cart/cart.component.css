@@ -130,3 +130,65 @@ textarea {
   width: 3rem;
   height: 3rem;
 }
+.promotion-item {
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.promotion-item:hover {
+  background: #e9f5ff;
+  transform: scale(1.02);
+}
+.promotion-item.active {
+  background: #d1e7dd;
+  border: 1px solid #0f5132;
+}
+.promotion-dropdown {
+  width: 100%;
+}
+.promotion-list {
+  max-height: 250px;
+  overflow-y: auto;
+  position: absolute;
+  width: 100%;
+  z-index: 10;
+}
+.selected-promo {
+  background: #fff;
+  cursor: pointer;
+}
+
+/* Payment method styles */
+.payment-item {
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.payment-item:hover {
+  background: #e9f5ff;
+  transform: scale(1.02);
+}
+
+.payment-item.active {
+  background: #d1e7dd;
+  border: 1px solid #0f5132;
+}
+
+.payment-dropdown {
+  width: 100%;
+}
+
+.payment-list {
+  max-height: 250px;
+  overflow-y: auto;
+  position: absolute;
+  width: 100%;
+  z-index: 10;
+}
+
+.selected-payment {
+  background: #fff;
+  cursor: pointer;
+}
+

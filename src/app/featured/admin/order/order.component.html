@@ -1,0 +1,301 @@
+<app-admin-header></app-admin-header>
+<app-admin-side-bar [(open)]="sidebarOpen"></app-admin-side-bar>
+
+<div class="order-container" [class.sidebar-closed]="!sidebarOpen">
+  <!-- Hộp thống kê -->
+  <h3 class="title">Quản Lý Đơn Hàng</h3>
+
+
+
+  <div class="card p-3 pb-3 mb-3">
+    <h3 class="title">Thống kê sơ bộ</h3>
+    <div class="stats-wrapper">
+      <div class="stat-card">
+        <div class="stat-icon stat-blue"><i class="bi bi-layout-text-sidebar-reverse"></i></div>
+        <div class="stat-content">
+          <div class="stat-title">Tổng đơn hàng</div>
+          <div class="stat-value">{{ totalOrders }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-yellow"><i class="bi bi-alarm"></i></div>
+        <div class="stat-content">
+          <div class="stat-title">Chờ xác nhận</div>
+          <div class="stat-value">{{ pendingCount }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-orange"><i class="bi bi-check2-square"></i></div>
+        <div class="stat-content">
+          <div class="stat-title">Đang chuẩn bị</div>
+          <div class="stat-value">{{ processingCount }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-green"><i class="bi bi-coin"></i></div>
+        <div class="stat-content">
+          <div class="stat-title">Doanh thu</div>
+          <div class="stat-value">{{ revenuePaid | number }} ₫</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-red"><i class="bi bi-coin"></i></div>
+        <div class="stat-content">
+          <div class="stat-title">Chưa thanh toán</div>
+          <div class="stat-value">{{ totalAmount - revenuePaid | number }} ₫</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-slate"><i class="bi bi-calculator"></i></div>
+        <div class="stat-content">
+          <div class="stat-title">Tổng cộng</div>
+          <div class="stat-value">{{ totalAmount | number }} ₫</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bộ lọc đơn hàng -->
+  <div class="card p-3 pb-3 mb-3">
+    <h5 class="mb-3">Bộ lọc đơn hàng</h5>
+    
+    <!-- Lọc theo ngày -->
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label for="startDate" class="form-label">Từ ngày:</label>
+        <input type="date" id="startDate" class="form-control" [(ngModel)]="filterStartDate">
+      </div>
+      <div class="col-md-4">
+        <label for="endDate" class="form-label">Đến ngày:</label>
+        <input type="date" id="endDate" class="form-control" [(ngModel)]="filterEndDate">
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <div class="btn-group w-100">
+          <button type="button" class="btn btn-primary" (click)="applyAllFilters()"
+            [disabled]="!hasActiveFilters()">
+            <i class="bi bi-search"></i> Áp dụng lọc
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="clearAllFilters()">
+            <i class="bi bi-x-circle"></i> Xóa lọc
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lọc theo trạng thái -->
+    <div class="row">
+      <div class="col-md-4">
+        <label for="statusFilter" class="form-label">Trạng thái đơn hàng:</label>
+        <select id="statusFilter" class="form-control" [(ngModel)]="filterStatus">
+          <option value="">Tất cả trạng thái</option>
+          <option value="PENDING">Chờ xác nhận</option>
+          <option value="PROCESSING">Đang xử lý</option>
+          <option value="COMPLETED">Hoàn tất</option>
+          <option value="DELIVERED">Đã giao</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label for="paymentStatusFilter" class="form-label">Trạng thái thanh toán:</label>
+        <select id="paymentStatusFilter" class="form-control" [(ngModel)]="filterPaymentStatus">
+          <option value="">Tất cả thanh toán</option>
+          <option value="PENDING">Chưa thanh toán</option>
+          <option value="PAID">Đã thanh toán</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="d-flex justify-content-between align-items-center pt-3 ps-3 pe-3">
+      <h3 class="title mb-0">Danh Sách Đơn Hàng</h3>
+      <div *ngIf="isFiltered" class="filter-indicator">
+        <span class="badge bg-info me-2" *ngIf="filterStartDate && filterEndDate">
+          <i class="bi bi-calendar"></i>
+          {{ filterStartDate | date:'dd/MM/yyyy' }} - {{ filterEndDate | date:'dd/MM/yyyy' }}
+        </span>
+        <span class="badge bg-warning me-2" *ngIf="filterStatus">
+          <i class="bi bi-clock"></i>
+          {{ getStatusText(filterStatus) }}
+        </span>
+        <span class="badge bg-success" *ngIf="filterPaymentStatus">
+          <i class="bi bi-credit-card"></i>
+          {{ getPaymentStatusText(filterPaymentStatus) }}
+        </span>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="order-table">
+        <thead>
+          <tr>
+            <th>Mã đơn</th>
+            <th>Khách hàng</th>
+            <th>Tổng tiền</th>
+            <th>Mã khuyến mãi</th>
+            <th>Trạng thái</th>
+            <th>Thanh toán</th>
+            <th>Thời gian</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of allOrder | paginate: { itemsPerPage: pageSize, currentPage: page }">
+            <td>#ORD-{{order.orderId}}</td>
+            <td>
+              <div class="customer-info">
+                <div class="name">{{order.guestName}}</div>
+                <div class="phone">{{order.guestPhone}}</div>
+              </div>
+            </td>
+            <td class="price">{{order.totalPrice | number}} ₫</td>
+            <td>
+              <div class="customer-info">
+                <div class="name">{{ order.promotion?.code || 'không có'}}</div>
+                <div class="phone">{{ order.promotion?.description || "null"}}</div>
+              </div>
+            </td>
+            <td>
+              <span class="status" [ngClass]="{
+                'pending': order.status === 'PENDING',
+                'processing': order.status === 'PROCESSING',
+                'completed': order.status === 'COMPLETED',
+                'delivered': order.status === 'DELIVERED'
+              }">
+                {{
+                order.status === 'PENDING' ? 'Chờ xác nhận' :
+                order.status === 'PROCESSING' ? 'Đang xử lý' :
+                order.status === 'COMPLETED' ? 'Hoàn tất' :
+                'Đã giao'
+                }}
+              </span>
+            </td>
+            <td>
+              <span class="status" [ngClass]="{
+                'pending': order.paymentStatus === 'PENDING',
+                'delivered' : order.paymentStatus === 'PAID'
+              }">
+                {{
+                order.paymentStatus === 'PENDING' ? 'Chưa thanh toán' :
+                'Đã thanh toán'
+                }}
+              </span>
+            </td>
+            <td>{{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <div class="actions">
+                <button class="btn-view" (click)="openModal(order)">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <select class="status-select" [ngModel]="order.status" (ngModelChange)="onStatusChange(order, $event)">
+                  <option value="PENDING">Chờ xác nhận</option>
+                  <option value="PROCESSING">Đang xử lý</option>
+                  <option value="COMPLETED">Hoàn tất</option>
+                  <option value="DELIVERED">Đã giao</option>
+                </select>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ✅ Phân trang -->
+      <div class="pagination-wrapper">
+        <div class="page-size-selector">
+          Số bản ghi mỗi trang:
+          <input type="number" [(ngModel)]="pageSize" (ngModelChange)="changePageSize($event)" min="1" max="50"
+            class="page-size-input">
+        </div>
+        <pagination-controls (pageChange)="page = $event" previousLabel="Trước" nextLabel="Sau"
+          class="pagination-controls">
+        </pagination-controls>
+        <div class="goto-page">
+          Đi tới trang:
+          <input type="number" (change)="goToPage($any($event.target).value)" min="1" class="goto-page-input">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal" *ngIf="selectedOrder" [ngClass]="{ 'show': showModal }">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4>Hóa Đơn #ORD-{{selectedOrder.orderId}}</h4>
+      <button class="close-btn" (click)="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <!-- Thông tin cửa hàng -->
+      <div class="invoice-header">
+        <h5>Nhà Hàng Việt Nam</h5>
+        <p>Địa chỉ: 298 Đ. Cầu Diễn, Minh Khai, Bắc Từ Liêm, Hà Nội</p>
+        <p>Số điện thoại: 0344 327 353</p>
+        <p>Email: lvu7071&#64;gmail.com</p>
+      </div>
+      <hr>
+      <!-- Thông tin khách hàng -->
+      <div class="customer-info">
+        <h5>Thông tin khách hàng</h5>
+        <p><strong>Tên:</strong> {{selectedOrder.guestName}}</p>
+        <p><strong>Số điện thoại:</strong> {{selectedOrder.guestPhone}}</p>
+      </div>
+      <hr>
+      <!-- Thông tin đơn hàng -->
+      <div class="order-info">
+        <h5>Thông tin đơn hàng</h5>
+        <p><strong>Mã đơn hàng:</strong> #ORD-{{selectedOrder.orderId}}</p>
+        <p><strong>Thời gian tạo:</strong> {{selectedOrder.createdAt | date: 'dd/MM/yyyy HH:mm'}}</p>
+        <p><strong>Trạng thái:</strong>
+          {{
+          selectedOrder.status === 'PENDING' ? 'Chờ xác nhận' :
+          selectedOrder.status === 'PROCESSING' ? 'Đang xử lý' :
+          selectedOrder.status === 'COMPLETED' ? 'Hoàn tất' :
+          'Đã giao'
+          }}
+        </p>
+        <p><strong>Thanh toán:</strong>
+          {{ selectedOrder.paymentStatus === 'PENDING' ? 'Chưa thanh toán' : 'Đã thanh toán' }}
+        </p>
+        <p><strong>Mã khuyến mãi:</strong> {{selectedOrder.promotion?.code || 'Không có'}}</p>
+        <p><strong>Mô tả khuyến mãi:</strong> {{selectedOrder.promotion?.description || 'Không có'}}</p>
+      </div>
+      <hr>
+      <!-- Danh sách món -->
+      <div class="order-items">
+        <h5>Danh sách món</h5>
+        <table class="order-items-table" *ngIf="selectedItems?.length; else noItems">
+          <thead>
+            <tr>
+              <th>Món</th>
+              <th>Giá</th>
+              <th>Số lượng</th>
+              <th class="text-end">Tạm tính</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let it of selectedItems">
+              <td>{{ it.food.name }}</td>
+              <td>{{ it.price | number }} ₫</td>
+              <td>x{{ it.quantity }}</td>
+              <td>{{ (it.price * it.quantity) | number }} ₫</td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #noItems>
+          <div>Không có món trong đơn hàng.</div>
+        </ng-template>
+      </div>
+      <hr>
+      <!-- Tổng tiền -->
+      <div class="order-total">
+        <p><strong>Tổng tiền:</strong> {{selectedOrder.totalPrice | number}} ₫</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-print" (click)="printInvoice()">In hóa đơn</button>
+      <button class="btn-close" (click)="closeModal()"></button>
+    </div>
+  </div>
+</div>
