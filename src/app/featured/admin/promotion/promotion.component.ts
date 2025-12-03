@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { Role, User } from '../../../shared/models/user';
 import { UserServiceService } from '../../../core/services/user-service.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { EmailRequest } from '../../../shared/models/email-request';
 import { AdminSideBarComponent } from "../../../shared/components/admin/admin-side-bar/admin-side-bar.component";
 import { AdminHeaderComponent } from "../../../shared/components/admin/admin-header/admin-header.component";
@@ -10,6 +9,7 @@ import { Promotion } from '../../../shared/models/promotion';
 import { promotions } from '../../../shared/models/cart';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-promotion',
@@ -32,21 +32,75 @@ export class PromotionComponent implements OnInit {
 
   private cDR = inject(ChangeDetectorRef)
 
+  // Thêm thuộc tính lọc
+  filter = {
+    code: '',
+    description: '',
+    status: null as string | null,
+    fromDate: '',
+    toDate: ''
+  };
+
+  filteredPromo: Promotion[] = [];
+
+  // Trong ngOnInit()
   ngOnInit() {
-    this.loadPromotions(); // hàm load danh sách từ API
+    this.loadPromotions();
   }
 
+  // Sau khi load xong dữ liệu
   loadPromotions() {
-    const status: string = 'Đang diễn ra';
+    this.loading = true;
     this.promotionService.getAllPromo().subscribe({
       next: (data) => {
         this.allPromo = data;
-        this.cDR.detectChanges();
+        this.filteredPromo = data;
+        this.applyFilter();
+        this.loading = false;
       },
       error: (error) => {
-        this.errMessage = error.message;
+        this.errMessage = error.message || 'Lỗi tải dữ liệu';
+        this.loading = false;
       }
-    })
+    });
+  }
+
+  // Hàm lọc chính
+  applyFilter() {
+    this.filteredPromo = this.allPromo.filter(promo => {
+      // Lọc mã
+      if (this.filter.code && !promo.code.toLowerCase().includes(this.filter.code.toLowerCase())) {
+        return false;
+      }
+
+      // Lọc mô tả
+      if (this.filter.description &&
+        !promo.description?.toLowerCase().includes(this.filter.description.toLowerCase())) {
+        return false;
+      }
+
+      // Lọc trạng thái
+      if (this.filter.status && this.getPromotionStatus(promo) !== this.filter.status) {
+        return false;
+      }
+
+      // Lọc theo ngày bắt đầu
+      if (this.filter.fromDate) {
+        const promoDate = new Date(promo.startDate);
+        const fromDate = new Date(this.filter.fromDate);
+        if (promoDate < fromDate) return false;
+      }
+
+      // Lọc theo ngày kết thúc
+      if (this.filter.toDate) {
+        const promoDate = new Date(promo.endDate);
+        const toDate = new Date(this.filter.toDate);
+        toDate.setHours(23, 59, 59, 999); // đến hết ngày
+        if (promoDate > toDate) return false;
+      }
+
+      return true;
+    });
   }
 
   getPromotionStatus(promo: Promotion): string {
@@ -76,13 +130,22 @@ export class PromotionComponent implements OnInit {
   selectedPromo: Promotion | null = null;
   isEditModalOpen = false;
 
-  editForm = {
+  editForm: Promotion = {
     promoId: 0,
     code: '',
     description: '',
     discountPercent: 0,
-    startDate: '',
-    endDate: '',
+    startDate: new Date,
+    endDate: new Date,
+    isActive: true
+  };
+  addForm = {
+    promoId: null,
+    code: '',
+    description: '',
+    discountPercent: 0,
+    startDate: new Date,
+    endDate: new Date,
     isActive: true
   };
 
@@ -93,9 +156,9 @@ export class PromotionComponent implements OnInit {
       promoId: promo.promoId,
       code: promo.code,
       description: promo.description || '',
-      discountPercent: promo.discountPercent ? Number(promo.discountPercent) : 0 ,
-      startDate: this.formatDateForInput(promo.startDate),
-      endDate: this.formatDateForInput(promo.endDate),
+      discountPercent: promo.discountPercent ? Number(promo.discountPercent) : 0,
+      startDate: promo.startDate,
+      endDate: promo.endDate,
       isActive: promo.isActive ?? true
     };
 
@@ -112,14 +175,161 @@ export class PromotionComponent implements OnInit {
     this.cDR.detectChanges();
   }
 
-  saveChanges() {
-    throw new Error('Method not implemented.');
+  openAddModal() {
+    //mở modal bootstrap 
+    const modalElement = document.getElementById('addPromotionModal');
+    if (modalElement) {
+      const modal = new (window as any).bootstrap.Modal(modalElement);
+      modal.show();
+    }
   }
 
-  private formatDateForInput(date: string | Date): string {
-    const d = new Date(date);
-    return d.toISOString().split('T')[0];
+  addModal() {
+    this.promotionService.addPromotion(this.addForm).subscribe({
+      next: (data) => {
+        this.addForm = {
+          promoId: null,
+          code: '',
+          description: '',
+          discountPercent: 0,
+          startDate: new Date,
+          endDate: new Date,
+          isActive: true
+        };
+        this.snackBar.open("Thêm thành công !!!", "Đóng", {
+          duration: 3000,
+          horizontalPosition: "right",
+          verticalPosition: "top",
+          panelClass: [("success")]
+        }),
+          this.closeModal("addPromotionModal"),
+          this.cDR.detectChanges();
+      },
+      error: (err) => {
+        console.log(err),
+          this.addForm = {
+            promoId: null,
+            code: '',
+            description: '',
+            discountPercent: 0,
+            startDate: new Date,
+            endDate: new Date,
+            isActive: true
+          };
+        this.snackBar.open("Thêm thất bại !!!", "Đóng", {
+          duration: 3000,
+          horizontalPosition: "right",
+          verticalPosition: "top",
+          panelClass: [("error")]
+        }),
+          this.closeModal("addPromotionModal")
+        this.cDR.detectChanges()
+      }
+    })
   }
+
+  saveChanges() {
+    this.promotionService.updatePromotion(this.editForm).subscribe({
+      next: (data) => {
+        console.log("ok"),
+          this.editForm = {
+            promoId: 0,
+            code: '',
+            description: '',
+            discountPercent: 0,
+            startDate: new Date,
+            endDate: new Date,
+            isActive: true
+          };
+        this.snackBar.open("Cập nhật thành công !!!", "Đóng", {
+          duration: 3000,
+          horizontalPosition: "right",
+          verticalPosition: "top",
+          panelClass: [("success")]
+        }),
+          this.closeModal("editPromotionModal"),
+          this.cDR.detectChanges();
+      },
+      error: (err) => {
+        console.log(err),
+          this.editForm = {
+            promoId: 0,
+            code: '',
+            description: '',
+            discountPercent: 0,
+            startDate: new Date,
+            endDate: new Date,
+            isActive: true
+          };
+        this.snackBar.open("Cập nhật thất bại !!!", "Đóng", {
+          duration: 3000,
+          horizontalPosition: "right",
+          verticalPosition: "top",
+          panelClass: [("error")]
+        }),
+          this.closeModal("editPromotionModal")
+        this.cDR.detectChanges()
+      }
+    })
+  }
+
+  // Biến lưu khuyến mãi đang muốn xóa
+  promoToDelete: Promotion | null = null;
+
+  // Mở modal xác nhận xóa
+  openDeleteModal(promo: Promotion) {
+    this.promoToDelete = promo;
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+    modal.show();
+  }
+
+  // Xác nhận xóa
+  confirmDelete() {
+    if (this.promoToDelete) {
+      this.promotionService.deletePromotion(this.promoToDelete?.promoId).subscribe({
+        next:()=>{
+          this.promoToDelete = {
+            promoId: 0,
+            code: '',
+            description: '',
+            discountPercent: 0,
+            startDate: new Date,
+            endDate: new Date,
+            isActive: true
+          }
+          this.snackBar.open("Xoá thành công !!!", "Đóng", {
+            duration: 3000,
+            horizontalPosition: "right",
+            verticalPosition: "top",
+            panelClass: [("success")]
+          }),
+            this.closeModal("deleteConfirmationModal"),
+            this.cDR.detectChanges();
+        },
+        error: (err)=>{
+          console.log(err),
+          this.promoToDelete = {
+            promoId: 0,
+            code: '',
+            description: '',
+            discountPercent: 0,
+            startDate: new Date,
+            endDate: new Date,
+            isActive: true
+          };
+        this.snackBar.open("Xoá thất bại !!!", "Đóng", {
+          duration: 3000,
+          horizontalPosition: "right",
+          verticalPosition: "top",
+          panelClass: [("error")]
+        }),
+          this.closeModal("deleteConfirmationModal")
+        this.cDR.detectChanges()
+        }
+      })
+    }
+  }
+
   // Đóng modal thủ công 
   closeModal(modalId: string) {
     const modal = document.getElementById(modalId);

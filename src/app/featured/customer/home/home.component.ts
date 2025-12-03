@@ -43,6 +43,7 @@ export class HomeComponent implements OnInit {
       next: (food) => {
         this.popularFoods = food;
         this.loading = false;
+        console.log(this.popularFoods)
       },
       error: (err) => {
         this.messageErr = 'Không thể tải món ăn nổi bật. Vui lòng thử lại!';

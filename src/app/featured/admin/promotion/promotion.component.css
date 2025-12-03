@@ -240,3 +240,15 @@
     transform: translateY(-4px);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1) !important;
 }
+
+/* sửa lại màu cho các class bootstrap */
+.btn-primary{
+    background-color: #1976d2;
+}
+.btn-primary:hover{
+    background-color: #184c81;
+}
+
+.text-primary{
+    color: #1060af;
+}

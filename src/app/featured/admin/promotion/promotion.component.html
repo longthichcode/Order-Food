@@ -4,55 +4,110 @@
 <div class="promotion-container" [class.sidebar-closed]="!sidebarOpen">
     <div class="page-header">
         <h2>Quản lí khuyến mãi</h2>
-        <span class="promotion-count">{{ allPromo.length }} Khuyến mãi</span>
+        <span class="promotion-count">{{ filteredPromo.length }} / {{ allPromo.length }} Khuyến mãi</span>
+    </div>
+
+    <!-- BỘ LỌC -->
+    <div class="filter-bar p-3 bg-light rounded mb-4 shadow-sm">
+        <div class="row g-3 align-items-end">
+            <!-- Tìm theo mã -->
+            <div class="col-md-3">
+                <label class="form-label fw-bold text-primary">Mã khuyến mãi</label>
+                <input type="text" class="form-control" [(ngModel)]="filter.code" placeholder="Nhập mã..."
+                    (input)="applyFilter()">
+            </div>
+
+            <!-- Tìm theo mô tả -->
+            <div class="col-md-3">
+                <label class="form-label fw-bold text-primary">Mô tả</label>
+                <input type="text" class="form-control" [(ngModel)]="filter.description" placeholder="Nhập mô tả..."
+                    (input)="applyFilter()">
+            </div>
+
+            <!-- Lọc theo trạng thái -->
+            <div class="col-md-2">
+                <label class="form-label fw-bold text-primary">Trạng thái</label>
+                <select class="form-select" [(ngModel)]="filter.status" (change)="applyFilter()">
+                    <option [ngValue]="null">Tất cả</option>
+                    <option value="Đang diễn ra">Đang diễn ra</option>
+                    <option value="Đã hết hạn">Đã hết hạn</option>
+                    <option value="Tạm dừng">Tạm dừng</option>
+                </select>
+            </div>
+
+            <!-- Từ ngày -->
+            <div class="col-md-2">
+                <label class="form-label fw-bold text-primary">Từ ngày</label>
+                <input type="date" class="form-control" [(ngModel)]="filter.fromDate" (change)="applyFilter()">
+            </div>
+
+            <!-- Đến ngày -->
+            <div class="col-md-2">
+                <label class="form-label fw-bold text-primary">Đến ngày</label>
+                <input type="date" class="form-control" [(ngModel)]="filter.toDate" (change)="applyFilter()">
+            </div>
+        </div>
+        <div class="text-end me-2 mt-3">
+            <button class="btn btn-primary" (click)="openAddModal()">Thêm mã khuyến mãi</button>
+        </div>
+
     </div>
 
     <!-- Loading & Error -->
-    <div *ngIf="loading" class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Đang tải dữ liệu...</p>
+    <div *ngIf="loading" class="loading-spinner text-center py-5">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+        <p class="mt-3">Đang tải dữ liệu...</p>
     </div>
     <div *ngIf="errMessage" class="alert alert-danger">
         <i class="bi bi-exclamation-triangle"></i> {{ errMessage }}
     </div>
 
-    <table class="promotion-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Mã khuyến mãi</th>
-                <th>Mô tả</th>
-                <th>Giá trị</th>
-                <th>Trạng thái</th>
-                <th>Ngày bắt đầu</th>
-                <th>Ngày kết thúc</th>
-                <th class="action-header">Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let promo of allPromo; let i = index" [class.striped]="i % 2 === 0" class="promotion-row">
-                <td><span class="badge-id">#{{ promo.promoId }}</span></td>
-                <td><strong>{{ promo.code }}</strong></td>
-                <td>{{ promo.description }}</td>
-                <td>{{ promo.discountPercent }} %</td>
-                <td>
-                    <span class="status-badge" [class]="getStatusClass(promo)">
-                        {{ getPromotionStatus(promo) }}
-                    </span>
-                </td>
-                <td>{{ promo.startDate | date: 'dd/MM/yyyy' }}</td>
-                <td>{{ promo.endDate | date: 'dd/MM/yyyy' }}</td>
-                <td>
-                    <button class="action-btn edit-btn me-2" title="Sửa" (click)="openEditModal(promo)">
-                        <i class="bi bi-pencil-square"></i>
-                    </button>
-                    <button class="action-btn delete-btn" title="Xóa">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <!-- Bảng dữ liệu -->
+    <div class="table-responsive">
+        <table class="promotion-table table table-hover">
+            <thead class="table-primary">
+                <tr>
+                    <th>ID</th>
+                    <th>Mã khuyến mãi</th>
+                    <th>Mô tả</th>
+                    <th>Giá trị</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày bắt đầu</th>
+                    <th>Ngày kết thúc</th>
+                    <th class="action-header text-center">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let promo of filteredPromo; let i = index" [class.table-light]="i % 2 === 0">
+                    <td><span class="badge bg-secondary">#{{ promo.promoId }}</span></td>
+                    <td><strong>{{ promo.code }}</strong></td>
+                    <td>{{ promo.description || '—' }}</td>
+                    <td><strong class="text-success">{{ promo.discountPercent }}%</strong></td>
+                    <td>
+                        <span class="status-badge" [class]="getStatusClass(promo)">
+                            {{ getPromotionStatus(promo) }}
+                        </span>
+                    </td>
+                    <td>{{ promo.startDate | date: 'dd/MM/yyyy' }}</td>
+                    <td>{{ promo.endDate | date: 'dd/MM/yyyy' }}</td>
+                    <td class="text-center">
+                        <button class="action-btn edit-btn me-2" title="Sửa" (click)="openEditModal(promo)">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="action-btn delete-btn me-2" title="Xóa" (click)="openDeleteModal(promo)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Không có kết quả -->
+        <div *ngIf="filteredPromo.length === 0 && !loading" class="text-center py-5 text-muted">
+            <i class="bi bi-search display-1"></i>
+            <p class="mt-3 fs-5">Không tìm thấy khuyến mãi nào phù hợp</p>
+        </div>
+    </div>
 </div>
 
 <!-- modal edit -->
@@ -60,61 +115,171 @@
 <!-- Modal Chỉnh sửa Khuyến mãi -->
 <div class="modal fade" id="editPromotionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header bg-success text-white">
-          <h5 class="modal-title">
-            <i class="bi bi-pencil-square me-2"></i>
-            Chỉnh sửa khuyến mãi #{{ editForm.promoId }}
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-  
-        <div class="modal-body">
-          <form>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Mã khuyến mãi</label>
-                <input type="text" class="form-control" [(ngModel)]="editForm.code" name="code" uppercase required>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Giá trị giảm (%)</label>
-                <input type="number" class="form-control" [(ngModel)]="editForm.discountPercent" name="discountPercent">
-              </div>
-  
-              <div class="col-12">
-                <label class="form-label fw-bold">Mô tả</label>
-                <textarea class="form-control" rows="3" [(ngModel)]="editForm.description" name="description"></textarea>
-              </div>
-  
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Ngày bắt đầu</label>
-                <input type="date" class="form-control" [(ngModel)]="editForm.startDate" name="startDate">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Ngày kết thúc</label>
-                <input type="date" class="form-control" [(ngModel)]="editForm.endDate" name="endDate">
-              </div>
-  
-              <div class="col-12">
-                <div class="form-check form-switch">
-                  <input class="form-check-input" type="checkbox" id="isActiveSwitch" [(ngModel)]="editForm.isActive" name="isActive">
-                  <label class="form-check-label fw-bold" for="isActiveSwitch">
-                    {{ editForm.isActive ? 'Đang hoạt động' : 'Tạm dừng' }}
-                  </label>
-                </div>
-              </div>
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square me-2"></i>
+                    Chỉnh sửa khuyến mãi #{{ editForm.promoId }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
-          </form>
+
+            <div class="modal-body">
+                <form>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Mã khuyến mãi</label>
+                            <input type="text" class="form-control" [(ngModel)]="editForm.code" name="code" uppercase
+                                required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Giá trị giảm (%)</label>
+                            <input type="number" class="form-control" [(ngModel)]="editForm.discountPercent"
+                                name="discountPercent">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Mô tả</label>
+                            <textarea class="form-control" rows="3" [(ngModel)]="editForm.description"
+                                name="description"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ngày bắt đầu</label>
+                            <input type="date" class="form-control" [(ngModel)]="editForm.startDate" name="startDate">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ngày kết thúc</label>
+                            <input type="date" class="form-control" [(ngModel)]="editForm.endDate" name="endDate">
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="isActiveSwitch"
+                                    [(ngModel)]="editForm.isActive" name="isActive">
+                                <label class="form-check-label fw-bold" for="isActiveSwitch">
+                                    {{ editForm.isActive ? 'Đang hoạt động' : 'Tạm dừng' }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    (click)="closeModal('editPromotionModal')">
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-primary" (click)="saveChanges()">
+                    Lưu thay đổi
+                </button>
+            </div>
         </div>
-  
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="closeModal('editPromotionModal')">
-            Hủy
-          </button>
-          <button type="button" class="btn btn-primary" (click)="saveChanges()">
-            <i class="bi bi-check-lg"></i> Lưu thay đổi
-          </button>
-        </div>
-      </div>
     </div>
-  </div>
+</div>
+
+<!-- modal thêm khuyến mãi -->
+<div class="modal fade" id="addPromotionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square me-2"></i>
+                    Thêm khuyến mãi mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <form>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Mã khuyến mãi</label>
+                            <input type="text" class="form-control" [(ngModel)]="addForm.code" name="code" uppercase
+                                required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Giá trị giảm (%)</label>
+                            <input type="number" class="form-control" [(ngModel)]="addForm.discountPercent"
+                                name="discountPercent">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Mô tả</label>
+                            <textarea class="form-control" rows="3" [(ngModel)]="addForm.description"
+                                name="description"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ngày bắt đầu</label>
+                            <input type="date" class="form-control" [(ngModel)]="addForm.startDate" name="startDate">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ngày kết thúc</label>
+                            <input type="date" class="form-control" [(ngModel)]="addForm.endDate" name="endDate">
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="isActiveSwitch"
+                                    [(ngModel)]="addForm.isActive" name="isActive">
+                                <label class="form-check-label fw-bold" for="isActiveSwitch">
+                                    {{ addForm.isActive ? 'Đang hoạt động' : 'Tạm dừng' }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    (click)="closeModal('editPromotionModal')">
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-primary" (click)="addModal()">
+                    Thêm khuyến mãi mới
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xác nhận xoá -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Xác nhận xóa khuyến mãi
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-trash3 display-1 text-danger mb-3"></i>
+                <p class="fs-5 fw-medium">Bạn có chắc chắn muốn xóa khuyến mãi này?</p>
+                <div class="bg-light rounded p-3 mx-auto" style="max-width: 400px;">
+                    <p class="mb-1"><strong>Mã:</strong> <span class="ms-2 me-2 text-primary">{{ promoToDelete?.code }}</span></p>
+                    <p class="mb-0"><strong>Giảm:</strong> <span class="ms-2 me-2 text-success">{{ promoToDelete?.discountPercent
+                            }}%</span></p>
+                </div>
+                <small class="text-danger d-block mt-3">
+                    i Hành động này <strong>không thể hoàn tác</strong>!
+                </small>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-danger px-5" (click)="confirmDelete()">
+                    Xóa ngay
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

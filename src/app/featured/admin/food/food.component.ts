@@ -96,6 +96,8 @@ export class FoodComponent implements OnInit {
     isPromotion: false,
     orderCount: 0,
     createdAt: '',
+    averageRating: 0,
+    reviewCount: 0
   };
   categorySelectAdd: number = 0;
 
@@ -340,6 +342,8 @@ export class FoodComponent implements OnInit {
       isPromotion: false,
       orderCount: 0,
       createdAt: '',
+      averageRating: 0,
+      reviewCount: 0
     };
   }
 

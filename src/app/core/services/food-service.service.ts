@@ -86,6 +86,11 @@ export class FoodServiceService {
       .pipe(catchError(this.handleError))
   }
 
+  //lấy tất cả review của món ăn 
+  getReviewsByFoodId(foodId: any) {
+    
+  }
+
 
   //xử lý lỗi
   private handleError(error: HttpErrorResponse) {

@@ -10,27 +10,46 @@ import { Promotion } from '../../shared/models/promotion';
 })
 export class PromotionsServiceService {
 
-  private baseUrl:string="http://localhost:8000/promotions"
+  private baseUrl: string = "http://localhost:8000/promotions"
 
-  constructor(private http:HttpClient) { }
+  constructor(private http: HttpClient) { }
 
   //lấy tất cả khuyến mãi 
-  getAllPromo(): Observable<promotions[]>{
+  getAllPromo(): Observable<promotions[]> {
     return this.http.get<promotions[]>(this.baseUrl).pipe(
       catchError(this.handleError)
     )
   }
 
   //lấy các khuyến mãi đang diễn ra 
-  getCurrentPromo(): Observable<promotions[]>{
+  getCurrentPromo(): Observable<promotions[]> {
     return this.http.get<promotions[]>(this.baseUrl + '/current').pipe(
       catchError(this.handleError)
     )
   }
 
   //lấy khuyến mãi theo ID 
-  getPromotionById(promotionId: number) : Observable<promotions>{
-    return this.http.get<promotions>(`${this.baseUrl}/byId/${promotionId}`)
+  getPromotionById(promotionId: number): Observable<promotions> {
+    return this.http.get<promotions>(`${this.baseUrl}/byId/${promotionId}`).pipe(
+      catchError(this.handleError)
+    )
+  }
+
+  //cập nhật khuyến mãi
+  updatePromotion(promo: promotions): Observable<any> {
+    return this.http.put(`${this.baseUrl}/update`, promo).pipe(
+      catchError(this.handleError)
+    )
+  }
+
+  //thêm khuyến mãi mới 
+  addPromotion(promo: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/add`, promo).pipe(catchError(this.handleError))
+  }
+
+  //xoá khuyến mãi
+  deletePromotion(promoId: number): Observable<any>{
+    return this.http.delete(`${this.baseUrl}/delete/${promoId}`).pipe(catchError(this.handleError))
   }
 
   //xử lý lỗi

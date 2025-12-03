@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -14,6 +14,10 @@ import { MatOption } from '@angular/material/core';
 import { MatInput } from '@angular/material/input';
 import { CustomerHeaderComponent } from '../../../shared/components/customer/customer-header/customer-header.component';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { ReviewServiceService } from '../../../core/services/review-service.service';
+import { FoodReview } from '../../../shared/models/food';
+import { CdkVirtualScrollableElement } from "@angular/cdk/scrolling";
+import { error } from 'console';
 
 @Component({
   selector: 'app-menu',
@@ -33,13 +37,15 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
   styleUrls: ['./menu.component.css']
 })
 export class MenuComponent implements OnInit {
-  
   constructor(
     private foodService: FoodServiceService,
     private cartService: CartServiceService,
     private categoryService: CategoryServiceService,
+    private reviewService: ReviewServiceService,
     private snackBar: MatSnackBar
   ) { }
+
+  private cdr = inject(ChangeDetectorRef)
 
   // Quản lý form thêm vào giỏ
   selectedFoodId: number | null = null;
@@ -56,8 +62,13 @@ export class MenuComponent implements OnInit {
   selectedCategory: number = 0;
   filterPrice: string = ''; // Lọc giá: 'low', 'mid', 'high'
 
+  // người dùng hiện tại 
+  userName = localStorage.getItem('username')
+  userId = Number(localStorage.getItem('id'))
+
   // Debounce tìm kiếm
   private searchSubject = new Subject<string>();
+
 
   ngOnInit(): void {
     this.getAllFood();
@@ -135,8 +146,8 @@ export class MenuComponent implements OnInit {
 
   /** Lọc theo danh mục */
   filterByCategory(categoryId: number): void {
-      this.selectedCategory = categoryId;
-      this.applyFilters();
+    this.selectedCategory = categoryId;
+    this.applyFilters();
   }
 
   /** Áp dụng tất cả bộ lọc (tên, danh mục, giá) */
@@ -202,10 +213,254 @@ export class MenuComponent implements OnInit {
   }
 
   /** Format tiền VND */
-  formatPrice(price: number): string {
+  formatPrice(price: any): string {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND'
     }).format(price);
+  }
+  selectedFood: Food | undefined;
+  reviewsOfFood: FoodReview[] | undefined;
+
+  // Hàm mở modal + load đánh giá
+  openModalReview(food: Food) {
+    this.selectedFood = food;
+
+    this.reviewService.getReviewByFoodId(food.foodId).subscribe({
+      next: (reviews) => {
+        this.reviewsOfFood = reviews;
+        // Mở modal
+        const modal = new (window as any).bootstrap.Modal(document.getElementById('reviewModal'));
+        modal.show();
+      },
+      error: () => {
+        this.reviewsOfFood = [];
+        const modal = new (window as any).bootstrap.Modal(document.getElementById('reviewModal'));
+        modal.show();
+      }
+    });
+
+    console.log(this.userName)
+  }
+
+  newReviewForm = {
+    rating: 0,
+    comment: ''
+  };
+
+  hoveredStar = 0;
+  submitted = false;
+  isSubmitting = false;
+
+  setRating(rating: number) {
+    this.newReviewForm.rating = rating;
+  }
+
+  submitReview() {
+    this.submitted = true;
+
+    if (!this.newReviewForm.rating || !this.newReviewForm.comment.trim()) return;
+    if (!this.selectedFood) return;
+
+    this.isSubmitting = true;
+
+    const reviewData = {
+      rating: this.newReviewForm.rating,
+      comment: this.newReviewForm.comment.trim()
+    };
+
+    this.reviewService.writeReview(this.selectedFood.foodId, this.userId, reviewData)
+      .subscribe({
+        next: () => {
+          this.newReviewForm = { rating: 0, comment: '' };
+          this.submitted = false;
+          this.closeModal("reviewModal");
+          this.snackBar.open("Gửi đánh giá món thành công !!!", "Đóng", {
+            duration: 3000,
+            horizontalPosition: "right",
+            verticalPosition: "top",
+            panelClass: ["success"]
+          });
+          this.openModalReview(this.selectedFood!);
+          this.isSubmitting = false;
+        },
+
+        error: (err) => {
+          if (err.status == 200) {
+            this.newReviewForm = { rating: 0, comment: '' };
+            this.submitted = false;
+            this.closeModal("reviewModal");
+            this.snackBar.open("Gửi đánh giá món thành công !!!", "Đóng", {
+              duration: 3000,
+              horizontalPosition: "right",
+              verticalPosition: "top",
+              panelClass: ["success"]
+            });
+
+            setTimeout(() => {
+              this.getAllFood();
+            }, 3000);
+            this.cdr.detectChanges()
+            this.isSubmitting = false;
+          }
+          else {
+            this.newReviewForm = { rating: 0, comment: '' };
+            this.submitted = false;
+            this.closeModal("reviewModal");
+            this.snackBar.open("Gửi đánh giá món thất bại !!!", "Đóng", {
+              duration: 3000,
+              horizontalPosition: "right",
+              verticalPosition: "top",
+              panelClass: ["error"]
+            });
+            console.error(err);
+            this.isSubmitting = false;
+          }
+        }
+      });
+  }
+
+  editingReviewId: number | null = null;
+  editForm = { comment: '', rating: 0 };
+
+  startEdit(review: any) {
+    this.editingReviewId = review.reviewId;
+    this.editForm = {
+      comment: review.comment || '',
+      rating: review.rating
+    };
+  }
+
+  cancelEdit() {
+    this.editingReviewId = null;
+    this.editForm = { comment: '', rating: 0 };
+  }
+
+  saveEdit(reviewId: number) {
+    this.reviewService.editMyReview(reviewId, this.userId, this.editForm).subscribe({
+      next: () => {
+
+      },
+      error: (err) => {
+        if (err.status == 200) {
+          this.editingReviewId = null;
+          this.editForm = { comment: '', rating: 0 };
+          this.snackBar.open("Chỉnh sửa đánh giá thành công !!!", "Đóng", {
+            duration: 3000,
+            horizontalPosition: "right",
+            verticalPosition: "top",
+            panelClass: ["success"]
+          });
+          this.closeModal("reviewModal")
+          setTimeout(() => {
+            this.getAllFood();
+          }, 3000);
+          this.cdr.detectChanges()
+        } else {
+          this.editingReviewId = null;
+          this.editForm = { comment: '', rating: 0 };
+          this.snackBar.open("Xoá đánh giá thành công !!!", "Đóng", {
+            duration: 3000,
+            horizontalPosition: "right",
+            verticalPosition: "top",
+            panelClass: ["error"]
+          });
+          this.closeModal("reviewModal")
+          setTimeout(() => {
+            this.getAllFood();
+          }, 3000);
+          this.cdr.detectChanges()
+          console.log(err)
+        }
+      }
+    })
+  }
+  deleteReviewId: number | null = null;
+
+  startDelete(reviewId: number) {
+    this.deleteReviewId = reviewId;
+  }
+
+  cancelDelete() {
+    this.deleteReviewId = null;
+  }
+
+  confirmDelete(reviewId: number) {
+    this.reviewService.deleteMyReview(reviewId, this.userId).subscribe({
+      next: () => {
+        this.deleteReviewId = null;
+        this.snackBar.open("Xoá đánh giá thành công !!!", "Đóng", {
+          duration: 3000,
+          horizontalPosition: "right",
+          verticalPosition: "top",
+          panelClass: ["success"]
+        });
+
+        setTimeout(() => {
+          this.getAllFood();
+        }, 3000);
+        this.cdr.detectChanges()
+      },
+      error: (err) => {
+        if (err.status == 200) {
+          this.deleteReviewId = null;
+          this.snackBar.open("Xoá đánh giá món thành công !!!", "Đóng", {
+            duration: 3000,
+            horizontalPosition: "right",
+            verticalPosition: "top",
+            panelClass: ["success"]
+          });
+          this.closeModal("reviewModal")
+          setTimeout(() => {
+            this.getAllFood();
+          }, 3000);
+          this.cdr.detectChanges()
+        } else {
+          console.error(err);
+          this.deleteReviewId = null;
+          this.snackBar.open("Xoá đánh giá món thất bại !!!", "Đóng", {
+            duration: 3000,
+            horizontalPosition: "right",
+            verticalPosition: "top",
+            panelClass: ["error"]
+          });
+        }
+
+      }
+    });
+  }
+
+  // Format date
+  formatDate(dateString: Date): string {
+    const date = dateString;
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    if (days === 0) return 'Hôm nay';
+    if (days === 1) return 'Hôm qua';
+    if (days < 7) return days + ' ngày trước';
+    if (days < 30) return Math.floor(days / 7) + ' tuần trước';
+    return date.toLocaleDateString('vi-VN');
+  }
+
+  closeModal(modalId: string) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+
+    const bsModal = (window as any).bootstrap.Modal.getInstance(modal);
+    if (bsModal) bsModal.dispose();
+
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+
+    const backdrop = document.querySelector('.modal-backdrop');
+    backdrop?.remove();
+
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+    modal.removeAttribute('aria-modal');
+    modal.setAttribute('aria-hidden', 'true');
   }
 }
