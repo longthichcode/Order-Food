@@ -35,4 +35,8 @@ export class AdminSideBarComponent {
   promotion(){
     this.router.navigate(['admin/promotion'])
   }
+
+  review(){
+    this.router.navigate(['admin/review'])
+  }
 }

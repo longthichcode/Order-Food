@@ -1,0 +1,210 @@
+/* ====================== CHỈ DÀNH CHO REVIEW ADMIN ===================== */
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css');
+
+/* Layout chính */
+.review-container {
+    margin-left: 250px;
+    padding: 30px;
+    transition: margin-left 0.35s ease;
+    min-height: 100vh;
+    background: #f5f7fa;
+}
+
+.review-container.sidebar-closed {
+    margin-left: 70px;
+}
+
+/* Tiêu đề trang */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.page-header h2 {
+    color: #1a1a1a;
+    font-weight: 600;
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+/* Số lượng review (nếu bạn muốn dùng sau này) */
+.review-count {
+    background: #e8f5e8;
+    color: #2e7d32;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Loading spinner – đang dùng trong HTML */
+.loading-spinner {
+    text-align: center;
+    padding: 80px 20px;
+    color: #666;
+}
+
+/* Bảng review – đang dùng class "promotion-table" trong HTML */
+.review-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    background: transparent;
+    font-size: 0.95rem;
+    margin-bottom: 0;
+}
+
+.review-table thead th {
+    background: #1976d2;
+    color: white;
+    padding: 16px 12px;
+    font-weight: 300;
+    font-size: 0.9rem;
+    text-align: center;
+    border: none;
+}
+
+.review-table tbody tr {
+    background: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    border-radius: 12px;
+    transition: all 0.25s ease;
+}
+
+.review-table tbody tr:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+    background: #f8fbff;
+}
+
+.review-table td {
+    padding: 18px 12px;
+    vertical-align: middle;
+    border: none;
+    text-align: center;
+}
+
+/* Cột hành động – bạn sẽ thêm nút Xem/Xóa ở đây */
+.action-header */
+.action-header {
+    text-align: center;
+}
+
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    border: 0.5px solid rgb(192, 192, 192);
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+/* Nút sửa */
+.show-btn {
+    background: #fff;
+    color: #333;
+}
+
+/* Hover nút sửa */
+.show-btn:hover {
+    background: #f3f3f3;
+}
+
+/* Nút Liên hệ */
+.contact-btn {
+    background: #172d8e;
+    color: #e6e6e6;
+}
+
+/* Hover nút liên hệ */
+.contact-btn:hover {
+    background: #0022ca;
+}
+
+/* Nút xóa */
+.hidden-btn {
+    background: #dc3545;
+    color: #fff;
+    border-color: #dc3545;
+}
+
+/* Hover nút xóa */
+.hidden-btn:hover {
+    background: #c82333;
+    border-color: #bd2130;
+}
+
+/* Responsive – cực kỳ quan trọng */
+@media (max-width: 992px) {
+    .review-container,
+    .review-container.sidebar-closed {
+        margin-left: 0 !important;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        text-align: center;
+        flex-direction: column;
+    }
+
+    .promotion-table thead {
+        display: none;
+    }
+
+    .review-table,
+    .review-table tbody,
+    .review-table tr,
+    .review-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .review-table tr {
+        margin-bottom: 20px;
+        padding: 16px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    .review-table td {
+        text-align: right;
+        padding: 10px 0;
+        position: relative;
+        border-bottom: 1px solid #eee;
+    }
+
+    .review-table td:last-child {
+        border-bottom: none;
+    }
+
+    .review-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        font-weight: 600;
+        color: #1976d2;
+        text-transform: capitalize;
+    }
+}
+
+/* Màu chủ đạo */
+.btn-primary {
+    background-color: #1976d2 !important;
+    border-color: #1976d2 !important;
+}
+
+.btn-primary:hover {
+    background-color: #1565c0 !important;
+}

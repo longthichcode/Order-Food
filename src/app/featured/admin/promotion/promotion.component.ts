@@ -204,6 +204,9 @@ export class PromotionComponent implements OnInit {
         }),
           this.closeModal("addPromotionModal"),
           this.cDR.detectChanges();
+        setTimeout(() => {
+          this.loadPromotions();
+        }, 3000);
       },
       error: (err) => {
         console.log(err),
@@ -224,6 +227,9 @@ export class PromotionComponent implements OnInit {
         }),
           this.closeModal("addPromotionModal")
         this.cDR.detectChanges()
+        setTimeout(() => {
+          this.loadPromotions();
+        }, 3000);
       }
     })
   }
@@ -249,6 +255,9 @@ export class PromotionComponent implements OnInit {
         }),
           this.closeModal("editPromotionModal"),
           this.cDR.detectChanges();
+        setTimeout(() => {
+          this.loadPromotions();
+        }, 3000);
       },
       error: (err) => {
         console.log(err),
@@ -268,7 +277,10 @@ export class PromotionComponent implements OnInit {
           panelClass: [("error")]
         }),
           this.closeModal("editPromotionModal")
-        this.cDR.detectChanges()
+        this.cDR.detectChanges();
+        setTimeout(() => {
+          this.loadPromotions();
+        }, 3000);
       }
     })
   }
@@ -287,7 +299,7 @@ export class PromotionComponent implements OnInit {
   confirmDelete() {
     if (this.promoToDelete) {
       this.promotionService.deletePromotion(this.promoToDelete?.promoId).subscribe({
-        next:()=>{
+        next: () => {
           this.promoToDelete = {
             promoId: 0,
             code: '',
@@ -305,26 +317,32 @@ export class PromotionComponent implements OnInit {
           }),
             this.closeModal("deleteConfirmationModal"),
             this.cDR.detectChanges();
+          setTimeout(() => {
+            this.loadPromotions();
+          }, 3000);
         },
-        error: (err)=>{
+        error: (err) => {
           console.log(err),
-          this.promoToDelete = {
-            promoId: 0,
-            code: '',
-            description: '',
-            discountPercent: 0,
-            startDate: new Date,
-            endDate: new Date,
-            isActive: true
-          };
-        this.snackBar.open("Xoá thất bại !!!", "Đóng", {
-          duration: 3000,
-          horizontalPosition: "right",
-          verticalPosition: "top",
-          panelClass: [("error")]
-        }),
-          this.closeModal("deleteConfirmationModal")
-        this.cDR.detectChanges()
+            this.promoToDelete = {
+              promoId: 0,
+              code: '',
+              description: '',
+              discountPercent: 0,
+              startDate: new Date,
+              endDate: new Date,
+              isActive: true
+            };
+          this.snackBar.open("Xoá thất bại !!!", "Đóng", {
+            duration: 3000,
+            horizontalPosition: "right",
+            verticalPosition: "top",
+            panelClass: [("error")]
+          }),
+            this.closeModal("deleteConfirmationModal")
+          this.cDR.detectChanges();
+          setTimeout(() => {
+            this.loadPromotions();
+          }, 3000);
         }
       })
     }

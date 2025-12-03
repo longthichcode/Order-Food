@@ -1,0 +1,267 @@
+<app-admin-header></app-admin-header>
+<app-admin-side-bar [(open)]="sidebarOpen"></app-admin-side-bar>
+
+<div class="review-container" [class.sidebar-closed]="!sidebarOpen">
+    <div class="page-header">
+        <h2>Quản lí đánh giá</h2>
+        <span class="review-count">Tổng: {{ allReviews.length }} đánh giá</span>
+    </div>
+
+    <!-- ==================== BỘ LỌC & SẮP XẾP ==================== -->
+    <div class="filters-bar bg-white p-4 rounded-3 shadow-sm mb-4">
+        <div class="row g-3 align-items-end">
+
+            <!-- Lọc theo tên người dùng -->
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small fw-600 text-muted">Người dùng</label>
+                <input type="text" class="form-control" placeholder="Nhập username..." 
+                       [(ngModel)]="filter.username" (input)="applyFilters()">
+            </div>
+
+            <!-- Lọc theo tên món -->
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small fw-600 text-muted">Món ăn</label>
+                <input type="text" class="form-control" placeholder="Nhập tên món..." 
+                       [(ngModel)]="filter.foodName" (input)="applyFilters()">
+            </div>
+
+            <!-- Lọc theo ngày (từ - đến) -->
+            <div class="col-lg-4 col-md-8">
+                <label class="form-label small fw-600 text-muted">Khoảng thời gian</label>
+                <div class="d-flex gap-2">
+                    <input type="date" class="form-control" [(ngModel)]="filter.fromDate" (change)="applyFilters()">
+                    <span class="align-self-center text-muted">→</span>
+                    <input type="date" class="form-control" [(ngModel)]="filter.toDate" (change)="applyFilters()">
+                </div>
+            </div>
+
+            <!-- Sắp xếp theo sao -->
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label small fw-600 text-muted">Sắp xếp</label>
+                <select class="form-select" [(ngModel)]="sortRating" (change)="applyFilters()">
+                    <option value="">Mới nhất</option>
+                    <option value="desc">Sao cao nhất</option>
+                    <option value="asc">Sao thấp nhất</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Nút reset -->
+        <div class="text-end mt-3">
+            <button class="btn btn-outline-secondary btn-sm" (click)="resetFilters()">
+                Xóa bộ lọc
+            </button>
+        </div>
+    </div>
+    <!-- =========================================================== -->
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading-spinner text-center py-5">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+        <p class="mt-3">Đang tải dữ liệu...</p>
+    </div>
+
+    <!-- Bảng dữ liệu -->
+    <div class="table-responsive" *ngIf="!loading">
+        <table class="review-table table table-hover align-middle">
+            <thead class="table-primary">
+                <tr>
+                    <th>Người dùng</th>
+                    <th>Món</th>
+                    <th>Nội dung</th>
+                    <th class="text-center">Điểm</th>
+                    <th>Ngày đánh giá</th>
+                    <th>Trạng thái</th>
+                    <th class="action-header text-center">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let review of displayedReviews">
+                    <td class="text-center"><strong>{{review.user.username}}</strong></td>
+                    <td>{{review.food.name}} <small class="text-muted">({{review.food.foodId}})</small></td>
+                    <td class="text-truncate" style="max-width: 300px;">{{review.comment || '(Không có nhận xét)'}}</td>
+                    <td class="text-center fw-bold text-warning">
+                        {{review.rating}} <i class="bi bi-star-fill"></i>
+                    </td>
+                    <td>{{review.createdAt | date:'dd/MM/yyyy HH:mm'}}</td>
+                    <td>
+                        <span class="badge" 
+                              [class.bg-success]="review.isVisible" 
+                              [class.bg-secondary]="!review.isVisible">
+                            {{review.isVisible ? 'Đang hiện' : 'Đã ẩn'}}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <button *ngIf="review.isVisible" 
+                                class="action-btn hidden-btn ms-2" 
+                                data-bs-toggle="modal" data-bs-target="#hiddenModal"
+                                (click)="selectReview(review)">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
+                        <button *ngIf="!review.isVisible" 
+                                class="action-btn show-btn ms-2"
+                                data-bs-toggle="modal" data-bs-target="#showModal"
+                                (click)="selectReview(review)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="action-btn contact-btn ms-2"
+                                data-bs-toggle="modal" data-bs-target="#contactModal"
+                                (click)="selectReview(review)">
+                            <i class="bi bi-chat-dots-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Không có kết quả -->
+        <div *ngIf="displayedReviews.length === 0" class="text-center py-5 text-muted">
+            <i class="bi bi-inbox display-1"></i>
+            <p class="mt-3 fs-5">Không tìm thấy đánh giá nào</p>
+        </div>
+    </div>
+</div>
+
+<!-- modal contact -->
+<div class="modal fade" id="contactModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Liên hệ với {{ selectedReview?.user?.fullName || selectedReview?.user?.username
+                    }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-5">
+                <div class="row g-3">
+
+                    <!-- Card gửi email -->
+                    <div class="col-md-6 card-contact" *ngIf="selectedReview?.user?.email">
+                        <div class="card  shadow-sm p-3 d-flex align-items-center flex-row" (click)="toggleEmailForm()"
+                            style="cursor:pointer;">
+                            <i class="bi bi-envelope-fill fs-1 me-3 text-primary"></i>
+                            <div>
+                                <strong>Gửi Email tới</strong><br>
+                                <small>{{ selectedReview?.user?.email }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card gọi điện -->
+                    <div class="col-md-6 card-contact" *ngIf="selectedReview?.user?.phone">
+                        <div class="card shadow-sm p-3 d-flex align-items-center flex-row" style="cursor:pointer;">
+                            <i class="bi bi-telephone-fill fs-1 me-3 text-success"></i>
+                            <div>
+                                <strong>Gửi SMS cho</strong><br>
+                                <small>{{ selectedReview?.user?.phone }}</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form gửi email (collapse) -->
+                    <div class="col-12 mt-3" *ngIf="showEmailForm">
+                        <div class="card p-3 shadow-sm">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tiêu đề</label>
+                                <input type="text" class="form-control" [(ngModel)]="emailSubject"
+                                    placeholder="Nhập tiêu đề email">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nội dung</label>
+                                <textarea rows="4" class="form-control" [(ngModel)]="emailMessage"
+                                    placeholder="Nhập nội dung email"></textarea>
+                            </div>
+
+                            <button class="btn btn-primary w-100" (click)="sendEmail()">
+                                Gửi email
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ẩn đánh giá -->
+<div class="modal fade" id="hiddenModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    Ẩn đánh giá của {{ selectedReview?.user?.username }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body py-4">
+                <p class="fs-5 text-center">
+                    Bạn có chắc muốn <strong>Ẩn đánh giá này</strong> không?
+                </p>
+
+                <div class="border p-3 rounded mt-3 bg-light">
+                    <p class="mb-1"><strong>Nội dung đánh giá:</strong></p>
+                    <p class="text-muted" [innerHTML]="selectedReview?.comment"></p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+
+                <button class="btn btn-warning text-dark"
+                    (click)="selectedReview ? hiddenReview(selectedReview.reviewId) : loadReview()">
+                    Ẩn đánh giá
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal hiện đánh giá -->
+<div class="modal fade" id="showModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header bg-success text-dark">
+                <h5 class="modal-title">
+                    Hiện đánh giá của {{ selectedReview?.user?.username }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body py-4">
+                <p class="fs-5 text-center">
+                    Bạn có chắc muốn <strong>Hiện đánh giá này</strong> không?
+                </p>
+
+                <div class="border p-3 rounded mt-3 bg-light">
+                    <p class="mb-1"><strong>Nội dung đánh giá:</strong></p>
+                    <p class="text-muted" [innerHTML]="selectedReview?.comment"></p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+
+                <button class="btn btn-success text-dark"
+                    (click)="selectedReview ? showReview(selectedReview.reviewId) : loadReview()">
+                    Hiện đánh giá
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

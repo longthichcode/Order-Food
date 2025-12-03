@@ -13,6 +13,7 @@ import { PaymentSuccessComponent } from './featured/customer/payment-success/pay
 import { PaymentCancelComponent } from './featured/customer/payment-cancel/payment-cancel.component';
 import { ProfileComponent } from './featured/customer/profile/profile.component';
 import { PromotionComponent } from './featured/admin/promotion/promotion.component';
+import { ReviewComponent } from './featured/admin/review/review.component';
 
 export const routes: Routes = [
 
@@ -116,5 +117,11 @@ export const routes: Routes = [
     component: PromotionComponent,
     canActivate: [authGuard],
     data: { roles: ['ADMIN'] }   
+  },
+  {
+    path: 'admin/review',
+    component: ReviewComponent,
+    canActivate: [authGuard],
+    data: { roles: ['ADMIN'] }  
   }
 ];
